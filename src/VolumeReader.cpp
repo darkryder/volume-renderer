@@ -10,7 +10,7 @@ VolumeReader::VolumeReader(const std::string &volume_object_name) {
     this->volume_object_name = volume_object_name;
 }
 
-struct volume_meta VolumeReader::extract(volume_data_3UC &data_buffer) {
+struct volume_meta VolumeReader::extract(VolumeData3UC &data_buffer) {
     return this->read_meta();
 }
 
