@@ -4,16 +4,18 @@ CFLAGS=-Wall -Werror -I$(INC_DIR) -std=c++11
 OBJS = utils.o reader.o data.o
 SYMBOLS =-D DEBUG
 
-all: $(OBJS)
-	$(CC) $(CFLAGS) $(SYMBOLS) src/sample.cpp -o sample -L bin -l:reader.so  -l:utils.so -l:volumedata.so
+all: lib
+	$(CC) $(CFLAGS) $(SYMBOLS) src/main.cpp -o main -L bin -l:reader.so  -l:utils.so -l:volumedata.so
 
-utils.o: base
+lib: base data.o utils.o reader.o
+
+utils.o:
 	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/utils.so src/utils.cpp
 
-reader.o: base data.o
+reader.o: data.o
 	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/reader.so src/VolumeReader.cpp
 
-data.o: base utils.o
+data.o: utils.o
 	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/volumedata.so src/VolumeData.cpp
 
 base:
@@ -21,4 +23,4 @@ base:
 
 clean:
 	rm -rf bin/*
-	rm -f sample
+	rm -f main
