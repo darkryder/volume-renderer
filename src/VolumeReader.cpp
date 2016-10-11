@@ -23,17 +23,23 @@ struct volume_meta VolumeReader::read_meta() {
         QUIT(1);
     }
 
-    struct volume_meta meta;
+    struct volume_meta meta = {};
 
     std::string line;
     while(std::getline(metafile, line)) {
         std::istringstream iss(line);
+        std::string _header;
         if (cst_utils::starts_with(line, "sizes")) {
             int x, y, z;
-            std::string _header;
             iss >> _header >> x >> y >> z;
 
             meta.sizes[0] = x; meta.sizes[1] = y; meta.sizes[2] = z;
+        }
+        else if (cst_utils::starts_with(line, "dimension")) {
+            int x;
+            iss >> _header >> x;
+
+            meta.dimension = x;
         }
     }
 
@@ -43,5 +49,6 @@ struct volume_meta VolumeReader::read_meta() {
 void VolumeReader::print_meta() {
     struct volume_meta meta = this->read_meta();
 
-    std::cout << "Dimensions are " << meta.sizes[0] << "x" << meta.sizes[1] << "x" << meta.sizes[2] << std::endl;
+    std::cout << "There are " << meta.dimension << " dimensions" << std::endl;
+    std::cout << "Sizes in each dimension are " << meta.sizes[0] << "x" << meta.sizes[1] << "x" << meta.sizes[2] << std::endl;
 }
