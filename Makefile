@@ -1,13 +1,25 @@
 CC=g++
 INC_DIR = headers
 CFLAGS=-Wall -Werror -I$(INC_DIR) -std=c++11
-OBJS = utils.o reader.o data.o
 SYMBOLS =-D DEBUG
+LIBS = -lglut -lGLU -lGL
 
-all: lib
-	$(CC) $(CFLAGS) $(SYMBOLS) src/main.cpp -o main -L bin -l:reader.so  -l:utils.so -l:volumedata.so
+all: lib display optix
+	$(CC) $(CFLAGS) $(SYMBOLS) src/main.cpp -o main -L bin \
+		-l:reader.so  -l:utils.so -l:volumedata.so -l:displaymanager.so -l:optixapp.so \
+		$(LIBS)
 
 lib: base data.o utils.o reader.o
+
+display: displaymanager.o
+
+optix: optixapp.o
+
+optixapp.o:
+	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/optixapp.so src/OptixApp.cpp
+
+displaymanager.o:
+	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/displaymanager.so src/DisplayManager.cpp
 
 utils.o:
 	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/utils.so src/utils.cpp
