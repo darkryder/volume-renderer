@@ -14,7 +14,7 @@ utils.o: base
 reader.o: base data.o
 	$(CC) $(CFLAGS) -c -o bin/reader.so src/VolumeReader.cpp
 
-data.o: base
+data.o: base utils.o
 	$(CC) $(CFLAGS) -c -o bin/volumedata.so src/VolumeData.cpp
 
 base:

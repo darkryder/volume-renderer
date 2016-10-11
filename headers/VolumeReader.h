@@ -15,7 +15,7 @@ class VolumeReader
 {
 public:
     VolumeReader(const std::string &volume_object_name);
-    struct volume_meta extract(VolumeData3UC &data);
+    VolumeData3UC extract();
     void print_meta();
 
 private:
@@ -24,6 +24,7 @@ private:
 
     const std::string DATA_FOLDER = "data/NRRD/";
     const std::string META_EXTENSION = ".nhdr";
+    const std::string DATA_EXTENSION = ".raw";
 };
 
 #endif

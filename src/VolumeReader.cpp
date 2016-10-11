@@ -10,8 +10,41 @@ VolumeReader::VolumeReader(const std::string &volume_object_name) {
     this->volume_object_name = volume_object_name;
 }
 
-struct volume_meta VolumeReader::extract(VolumeData3UC &data_buffer) {
-    return this->read_meta();
+VolumeData3UC VolumeReader::extract() {
+    struct volume_meta meta = this->read_meta();
+
+    this->print_meta();
+
+    if (meta.dimension != 3) {
+        std::cout << "Support for dimensions other than 3 not added." << std::endl;
+        QUIT(1);
+    }
+
+    int dimx = meta.sizes[0];
+    int dimy = meta.sizes[1];
+    int dimz = meta.sizes[2];
+
+    VolumeData3UC volume_data(dimx, dimy, dimz);
+
+    std::string datafile_path = DATA_FOLDER + this->volume_object_name + DATA_EXTENSION;
+    std::ifstream datafile(datafile_path);
+    if (datafile.fail()) {
+        std::cout << "Unable to open file: " << datafile_path << std::endl;
+        QUIT(1);
+    }
+
+    int elem_size = sizeof(unsigned char);
+    char copy_buffer;
+    for(int x=0; x < dimx; x++) {
+        for(int y=0; y < dimy; y++) {
+            for(int z=0; z < dimz; z++) {
+                datafile.readsome(&copy_buffer, elem_size);
+                volume_data.set(x, y, z, copy_buffer);
+            }
+        }
+    }
+
+    return volume_data;
 }
 
 struct volume_meta VolumeReader::read_meta() {
@@ -49,6 +82,9 @@ struct volume_meta VolumeReader::read_meta() {
 void VolumeReader::print_meta() {
     struct volume_meta meta = this->read_meta();
 
+    std::cout << "-----" << std::endl;
+    std::cout << "Parsing metadata. " << std::endl;
     std::cout << "There are " << meta.dimension << " dimensions" << std::endl;
     std::cout << "Sizes in each dimension are " << meta.sizes[0] << "x" << meta.sizes[1] << "x" << meta.sizes[2] << std::endl;
+    std::cout << "-----" << std::endl << std::endl;
 }

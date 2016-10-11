@@ -5,5 +5,5 @@
 int main(int argc, char const *argv[])
 {
     VolumeReader volume_reader("bonsai");
-    volume_reader.print_meta();
+    VolumeData3UC volumedata = volume_reader.extract();
 }
