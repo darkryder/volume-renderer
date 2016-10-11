@@ -24,7 +24,7 @@ display: optixapp.o displaymanager.o
 ptx_objects:
 	@echo "\nCompiling ptx files\n"
 	$(foreach single_ptx_object, $(PTX_FILES), \
-		nvcc --ptx $(NVCC_FLAGS) src/$(single_ptx_object).cu -o bin/$(single_ptx_object).ptx \
+		nvcc --ptx $(NVCC_FLAGS) src/optixApp/$(single_ptx_object).cu -o bin/$(single_ptx_object).ptx \
 			$(INCS) \
 			-lcst_reader  -lcst_utils -lcst_volumedata -lcst_displaymanager -lcst_optixapp \
 			-L bin $(LIBS) $(EXTERNAL_LIBS);\
@@ -32,7 +32,7 @@ ptx_objects:
 	@echo "\nPTX files compiled\n"
 
 optixapp.o: ptx_objects
-	$(CC) $(CFLAGS) $(INCS) -c -o bin/libcst_optixapp.so src/OptixApp.cpp
+	$(CC) $(CFLAGS) $(INCS) -c -o bin/libcst_optixapp.so src/optixApp/OptixApp.cpp
 
 displaymanager.o:
 	$(CC) $(CFLAGS) $(INCS) -c -o bin/libcst_displaymanager.so src/DisplayManager.cpp
