@@ -3,15 +3,16 @@
 #include "OptixApp.h"
 #include "utils.h"
 
-#include <iostream>
-
 int main(int argc, char *argv[])
 {
     VolumeReader volume_reader("bonsai");
     VolumeData3UC volumedata = volume_reader.extract();
 
-    LOG("Creating app");
-    OptixApp optix_app;
+    int width = DEFAULT_WIDTH,
+        height = DEFAULT_HEIGHT;
+
+    LOG("Creating optix app");
+    OptixApp optix_app(width, height);
     optix_app.initialize();
 
     LOG("Creating window");

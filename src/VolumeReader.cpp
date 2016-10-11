@@ -12,7 +12,7 @@ VolumeReader::VolumeReader(const std::string &volume_object_name) {
 
 VolumeData3UC VolumeReader::extract() {
     struct volume_meta meta = this->read_meta();
-
+    LOG("Parsed header file.");
     this->print_meta();
 
     if (meta.dimension != 3) {

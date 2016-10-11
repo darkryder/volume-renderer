@@ -1,20 +1,14 @@
 #ifndef DISPLAY_MANAGER_H
 #define DISPLAY_MANAGER_H
 
-#include "OptixApp.h"
 #include <sutil.h>
+#include <GL/glew.h>
+#include <GL/glut.h>
 
-#ifdef __APPLE__
-#  include <GLUT/glut.h>
-#else
-#  include <GL/glew.h>
-#  if defined( _WIN32 )
-#    include <GL/wglew.h>
-#    include <GL/freeglut.h>
-#  else
-#    include <GL/glut.h>
-#  endif
-#endif
+#include "OptixApp.h"
+
+#define DEFAULT_WIDTH 512
+#define DEFAULT_HEIGHT 512
 
 class DisplayManager
 {
@@ -40,8 +34,8 @@ public:
 private:
     OptixApp app;
 
-    int width = 256;
-    int height = 256;
+    int width = DEFAULT_WIDTH;
+    int height = DEFAULT_HEIGHT;
     const char* const TITLE = "optixVolumeMarcher";
 };
 

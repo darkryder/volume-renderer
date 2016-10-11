@@ -1,7 +1,5 @@
 #include "DisplayManager.h"
 
-#include <iostream>
-
 void DisplayManager::initialize(OptixApp &optix_app, int *argc, char **argv) {
     this->app = optix_app;
 

@@ -14,8 +14,12 @@ public:
         use_pbo(true),
         width(256),
         height(256),
-        destroyed(false)
-        {};
+        destroyed(false) {};
+    OptixApp(int w, int h) :
+        use_pbo(false),
+        width(w),
+        height(h),
+        destroyed(false) {};
     ~OptixApp();
 
     void initialize();
@@ -33,7 +37,6 @@ private:
     int width;
     int height;
     bool destroyed;
-
 };
 
 #endif
