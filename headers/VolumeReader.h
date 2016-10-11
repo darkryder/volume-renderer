@@ -10,11 +10,19 @@ struct volume_meta {
     int sizes[3];
 };
 
+template <typename T>
+struct volume_data {
+    T *x;
+    T *y;
+    T *z;
+};
+using volume_data_3UC = volume_data<unsigned char>;
+
 class VolumeReader
 {
 public:
     VolumeReader(const std::string &volume_object_name);
-    struct volume_meta extract(unsigned char *data_buffer);
+    struct volume_meta extract(volume_data_3UC &data_buffer);
     void print_meta();
 
 private:
