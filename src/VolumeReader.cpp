@@ -33,6 +33,7 @@ VolumeData3UC VolumeReader::extract() {
         QUIT(1);
     }
 
+    LOG("Reading datafile.");
     int elem_size = sizeof(unsigned char);
     char copy_buffer;
     for(int x=0; x < dimx; x++) {

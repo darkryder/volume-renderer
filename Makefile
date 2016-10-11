@@ -2,20 +2,19 @@ CC=g++
 INC_DIR = headers
 CFLAGS=-Wall -Werror -I$(INC_DIR) -std=c++11
 OBJS = utils.o reader.o data.o
+SYMBOLS =-D DEBUG
 
-all: sample
-
-sample: $(OBJS)
-	$(CC) $(CFLAGS) src/sample.cpp -o sample -L bin -l:reader.so  -l:utils.so -l:volumedata.so
+all: $(OBJS)
+	$(CC) $(CFLAGS) $(SYMBOLS) src/sample.cpp -o sample -L bin -l:reader.so  -l:utils.so -l:volumedata.so
 
 utils.o: base
-	$(CC) $(CFLAGS) -c -o bin/utils.so src/utils.cpp
+	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/utils.so src/utils.cpp
 
 reader.o: base data.o
-	$(CC) $(CFLAGS) -c -o bin/reader.so src/VolumeReader.cpp
+	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/reader.so src/VolumeReader.cpp
 
 data.o: base utils.o
-	$(CC) $(CFLAGS) -c -o bin/volumedata.so src/VolumeData.cpp
+	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/volumedata.so src/VolumeData.cpp
 
 base:
 	mkdir -p bin/
