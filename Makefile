@@ -1,8 +1,9 @@
 CC=g++
-INC_DIR = headers
-CFLAGS=-Wall -Werror -I$(INC_DIR) -std=c++11
-SYMBOLS =-D DEBUG
-LIBS = -lglut -lGLU -lGL
+OPTIX_PATH=/home/darkryder/dev/NVIDIA-OptiX-SDK-4.0.1-linux64
+INCS=-I headers -I $(OPTIX_PATH)/include
+CFLAGS=-Wall -Werror $(INCS) -std=c++11
+SYMBOLS=-D DEBUG
+LIBS=-lglut -lGLU -lGL
 
 all: lib display optix
 	$(CC) $(CFLAGS) $(SYMBOLS) src/main.cpp -o main -L bin \

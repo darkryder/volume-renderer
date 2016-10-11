@@ -39,7 +39,6 @@ private:
     int WIDTH = 256;
     int HEIGHT = 256;
     const char* const TITLE = "optixVolumeMarcher";
-
 };
 
 namespace DisplayManagerWrapper {
