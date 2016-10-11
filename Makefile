@@ -4,7 +4,7 @@ CUDA_PATH=/usr/local/cuda-8.0
 INCS=-I headers -I $(OPTIX_PATH)/include -I $(OPTIX_PATH)/include/optixu -I $(CUDA_PATH)/include \
 	 -I $(OPTIX_PATH)/include/internal -I $(OPTIX_PATH)/SDK/sutil
 SYMBOLS=-D DEBUG
-CFLAGS=-Wall -Werror -std=c++11 $(SYMBOLS)
+CFLAGS=-Wall -Werror -std=c++11 $(SYMBOLS) -g
 EXTERNAL_LIBS= -L $(CUDA_PATH)/lib64 -L $(OPTIX_PATH)/lib64 -L $(OPTIX_PATH)/SDK/build/lib
 LIBS=-lglut -lGLU -lGL -loptix -loptixu -lsutil_sdk
 

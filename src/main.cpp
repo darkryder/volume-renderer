@@ -12,9 +12,10 @@ int main(int argc, char *argv[])
 
     LOG("Creating app");
     OptixApp optix_app;
+    optix_app.initialize();
 
     LOG("Creating window");
-    DisplayManager *display_manager = DisplayManagerWrapper::display_manager; // static object that allows method callbacks
+    DisplayManager *display_manager = DisplayManagerWrapper::create_singleton();
     display_manager->initialize(optix_app, &argc, argv);
     DisplayManagerWrapper::registerCallbacksWrapper();
 
