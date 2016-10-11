@@ -23,21 +23,21 @@ struct volume_meta VolumeReader::read_meta() {
         QUIT(1);
     }
 
-    struct volume_meta volume_meta_;
+    struct volume_meta meta;
 
     std::string line;
     while(std::getline(metafile, line)) {
         std::istringstream iss(line);
-        if (starts_with(line, "sizes")) {
+        if (cst_utils::starts_with(line, "sizes")) {
             int x, y, z;
             std::string _header;
             iss >> _header >> x >> y >> z;
 
-            volume_meta_.sizes[0] = x; volume_meta_.sizes[1] = y; volume_meta_.sizes[2] = z;
+            meta.sizes[0] = x; meta.sizes[1] = y; meta.sizes[2] = z;
         }
     }
 
-    return volume_meta_;
+    return meta;
 }
 
 void VolumeReader::print_meta() {
