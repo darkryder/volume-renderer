@@ -4,11 +4,14 @@ CUDA_PATH=/usr/local/cuda-8.0
 INCS=-I headers -I $(OPTIX_PATH)/include -I $(OPTIX_PATH)/include/optixu -I $(CUDA_PATH)/include \
 	 -I $(OPTIX_PATH)/include/internal -I $(OPTIX_PATH)/SDK/sutil
 SYMBOLS=-D DEBUG
+NVCC_FLAGS=-std=c++11 $(SYMBOLS) -g --compiler-options='-Wall -Werror'
 CFLAGS=-Wall -Werror -std=c++11 $(SYMBOLS) -g
 EXTERNAL_LIBS= -L $(CUDA_PATH)/lib64 -L $(OPTIX_PATH)/lib64 -L $(OPTIX_PATH)/SDK/build/lib
 LIBS=-lglut -lGLU -lGL -loptix -loptixu -lsutil_sdk
+PTX_FILES=test_ptx
 
-all: lib display optix
+all: lib display
+	@echo "\nlinking\n"
 	$(CC) $(CFLAGS) src/main.cpp -o 3sat \
 		$(INCS) \
 		-lcst_reader  -lcst_utils -lcst_volumedata -lcst_displaymanager -lcst_optixapp \
@@ -16,11 +19,19 @@ all: lib display optix
 
 lib: base data.o utils.o reader.o
 
-display: optix displaymanager.o
+display: optixapp.o displaymanager.o
 
-optix: optixapp.o
+ptx_objects:
+	@echo "\nCompiling ptx files\n"
+	$(foreach single_ptx_object, $(PTX_FILES), \
+		nvcc --ptx $(NVCC_FLAGS) src/$(single_ptx_object).cu -o bin/$(single_ptx_object).ptx \
+			$(INCS) \
+			-lcst_reader  -lcst_utils -lcst_volumedata -lcst_displaymanager -lcst_optixapp \
+			-L bin $(LIBS) $(EXTERNAL_LIBS);\
+	)
+	@echo "\nPTX files compiled\n"
 
-optixapp.o:
+optixapp.o: ptx_objects
 	$(CC) $(CFLAGS) $(INCS) -c -o bin/libcst_optixapp.so src/OptixApp.cpp
 
 displaymanager.o:

@@ -54,7 +54,7 @@ void DisplayManager::display_frame()
 {
     this->app.frame();
 
-    // sutil::displayBufferGL(app.getOutputBuffer());
+    sutil::displayBufferGL(app.getOutputBuffer());
 
     // {
     //   static unsigned frame_count = 0;
