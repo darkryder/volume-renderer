@@ -1,39 +1,41 @@
 CC=g++
 OPTIX_PATH=/home/darkryder/dev/NVIDIA-OptiX-SDK-4.0.1-linux64
-INCS=-I headers -I $(OPTIX_PATH)/include
-CFLAGS=-Wall -Werror $(INCS) -std=c++11
+CUDA_PATH=/usr/local/cuda-8.0
+INCS=-I headers -I $(OPTIX_PATH)/include -I $(OPTIX_PATH)/include/optixu -I $(CUDA_PATH)/include -I $(OPTIX_PATH)/include/internal
 SYMBOLS=-D DEBUG
-LIBS=-lglut -lGLU -lGL
+CFLAGS=-Wall -Werror -std=c++11 $(SYMBOLS)
+EXTERNAL_LIBS= -L $(CUDA_PATH)/lib64 -L $(OPTIX_PATH)/lib64
+LIBS=-lglut -lGLU -lGL -loptix -loptixu
 
 all: lib display optix
-	$(CC) $(CFLAGS) $(SYMBOLS) src/main.cpp -o main -L bin \
+	$(CC) $(CFLAGS) src/main.cpp -o 3sat -L bin $(INCS) \
 		-l:reader.so  -l:utils.so -l:volumedata.so -l:displaymanager.so -l:optixapp.so \
-		$(LIBS)
+		$(LIBS) $(EXTERNAL_LIBS)
 
 lib: base data.o utils.o reader.o
 
-display: displaymanager.o
+display: optix displaymanager.o
 
 optix: optixapp.o
 
 optixapp.o:
-	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/optixapp.so src/OptixApp.cpp
+	$(CC) $(CFLAGS) $(INCS) -c -o bin/optixapp.so src/OptixApp.cpp
 
 displaymanager.o:
-	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/displaymanager.so src/DisplayManager.cpp
+	$(CC) $(CFLAGS) $(INCS) -c -o bin/displaymanager.so src/DisplayManager.cpp
 
 utils.o:
-	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/utils.so src/utils.cpp
+	$(CC) $(CFLAGS) $(INCS) -c -o bin/utils.so src/utils.cpp
 
 reader.o: data.o
-	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/reader.so src/VolumeReader.cpp
+	$(CC) $(CFLAGS) $(INCS) -c -o bin/reader.so src/VolumeReader.cpp
 
 data.o: utils.o
-	$(CC) $(CFLAGS) $(SYMBOLS) -c -o bin/volumedata.so src/VolumeData.cpp
+	$(CC) $(CFLAGS) $(INCS) -c -o bin/volumedata.so src/VolumeData.cpp
 
 base:
 	mkdir -p bin/
 
 clean:
 	rm -rf bin/*
-	rm -f main
+	rm -f 3sat
