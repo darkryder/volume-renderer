@@ -5,6 +5,8 @@
 
 void OptixApp::initialize() {
     context = optix::Context::create();
+
+    /*
     context->setRayTypeCount(2);
     context->setEntryPointCount(1);
 
@@ -37,12 +39,13 @@ void OptixApp::initialize() {
     optix::GeometryGroup geometry_group = context->createGeometryGroup();
     geometry_group->setAcceleration( context->createAcceleration( "Trbvh" ) );
     context[ "top_object"   ]->set( geometry_group );
-
+    */
     context->validate();
+
 }
 
 void OptixApp::frame() {
-    context->launch(0, width, height);
+    /* context->launch(0, width, height); */
 }
 
 void OptixApp::kill() {

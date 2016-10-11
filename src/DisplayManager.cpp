@@ -53,14 +53,7 @@ void DisplayManager::callback_keyboard(unsigned char key, int x, int y) {}
 void DisplayManager::display_frame()
 {
     this->app.frame();
-
     sutil::displayBufferGL(app.getOutputBuffer());
-
-    // {
-    //   static unsigned frame_count = 0;
-    //   sutil::displayFps( frame_count++ );
-    // }
-
     glutSwapBuffers();
 }
 
