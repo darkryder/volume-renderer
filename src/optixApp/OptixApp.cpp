@@ -40,7 +40,10 @@ void OptixApp::initialize() {
     geometry_group->setAcceleration( context->createAcceleration( "Trbvh" ) );
     context[ "top_object"   ]->set( geometry_group );
     */
+
+    LOG("Validating context.")
     context->validate();
+    LOG("Context validated.")
 
 }
 

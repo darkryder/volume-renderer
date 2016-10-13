@@ -20,5 +20,6 @@ int main(int argc, char *argv[])
     display_manager->initialize(optix_app, &argc, argv);
     DisplayManagerWrapper::registerCallbacksWrapper();
 
+    LOG("Starting display loop.")
     display_manager->execute();
 }
