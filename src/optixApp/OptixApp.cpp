@@ -125,7 +125,7 @@ void OptixApp::hook_exception_program() {
 }
 
 void OptixApp::hook_miss_program() {
-    context["bg_color"]->setFloat(0.0f, 0.0f, 0.0f);
+    context["bg_colour"]->setFloat(0.0f, 0.0f, 0.0f);
     context->setMissProgram(
         ENTRY_POINT_DEFAULT,
         cst_utils::get_ptx_program(context, MISS_PTX_FILENAME, "miss")
