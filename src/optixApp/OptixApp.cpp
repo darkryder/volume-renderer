@@ -10,6 +10,11 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     context->setEntryPointCount(1);
     context->setRayTypeCount(1);
 
+#ifdef DEBUG
+    context->setPrintEnabled(true);
+    context->setPrintBufferSize(2048);
+#endif
+
     optix::Buffer output_buffer = this->create_output_buffer();
     optix::Buffer mapped_volume_data = this->map_volume_data();
     optix::Geometry top_geometry = this->construct_top_geometry();
@@ -112,7 +117,7 @@ optix::Geometry OptixApp::construct_top_geometry() {
 }
 
 void OptixApp::hook_exception_program() {
-    context["exception_colour"]->setFloat(10000.0f, 0.0f, 0.0f);
+    context["exception_colour"]->setFloat(1.0f, 0.0f, 1.0f);
     context->setExceptionProgram(
         ENTRY_POINT_DEFAULT,
         cst_utils::get_ptx_program(context, EXCEPTION_PTX_FILENAME, "exception")

@@ -1,4 +1,4 @@
-#include <optix_world.h>
+#include "device_helpers.cuh"
 
 RT_PROGRAM void pinhole_camera() {
 }
