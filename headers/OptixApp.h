@@ -42,8 +42,15 @@ private:
     int height;
     bool destroyed;
 
-    const char *PTX_FILENAME = "volume_programs";
+    const char *INTERSECTION_PTX_FILENAME = "volume_programs";
+    const char *BB_PTX_FILENAME = "volume_programs";
+    const char *MISS_PTX_FILENAME = "volume_programs";
+    const char *EXCEPTION_PTX_FILENAME = "volume_programs";
     optix::Geometry construct_top_geometry();
+    void hook_intersection_program(optix::Geometry &);
+    void hook_bb_program(optix::Geometry &);
+    void hook_exception_program();
+    void hook_miss_program();
 };
 
 #endif

@@ -1,31 +1,7 @@
 #include "OptixApp.h"
-
 #include <string>
 
 #define ENTRY_POINT_DEFAULT 0
-
-optix::Geometry OptixApp::construct_top_geometry() {
-    // TODO: put volume data into a common buffer.
-    // set number of primitives to x*y*z
-    // TODO: create an intersection program
-    // Link intersection program
-    // TODO: create bounding box program
-    // link bounding box program
-
-    optix::Geometry volume_geometry = context->createGeometry();
-
-    int *dims = this->read_volume_data.sizes;
-    int n_primitives = dims[0] * dims[1] * dims[2];
-
-    volume_geometry->setPrimitiveCount(n_primitives);
-
-    volume_geometry->setIntersectionProgram(
-        cst_utils::get_ptx_program(context, PTX_FILENAME, "check_intersection"));
-    volume_geometry->setBoundingBoxProgram(
-        cst_utils::get_ptx_program(context, PTX_FILENAME, "bounding_box"));
-
-    return volume_geometry;
-}
 
 void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     this->read_volume_data = read_volume_data_;
@@ -33,6 +9,11 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     context = optix::Context::create();
 
     optix::Geometry top_geometry = this->construct_top_geometry();
+
+    hook_intersection_program(top_geometry);
+    hook_bb_program(top_geometry);
+    hook_exception_program();
+    hook_miss_program();
 
     /*
     context->setRayTypeCount(2);
@@ -77,6 +58,44 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
 
 void OptixApp::frame() {
     /* context->launch(0, width, height); */
+}
+
+optix::Geometry OptixApp::construct_top_geometry() {
+    // TODO: put volume data into a common buffer.
+    optix::Geometry volume_geometry = context->createGeometry();
+
+    int *dims = this->read_volume_data.sizes;
+    int n_primitives = dims[0] * dims[1] * dims[2];
+
+    volume_geometry->setPrimitiveCount(n_primitives);
+
+    return volume_geometry;
+}
+
+void OptixApp::hook_exception_program() {
+    context["exception_colour"]->setFloat(10000.0f, 0.0f, 0.0f);
+    context->setExceptionProgram(
+        ENTRY_POINT_DEFAULT,
+        cst_utils::get_ptx_program(context, EXCEPTION_PTX_FILENAME, "exception")
+    );
+}
+
+void OptixApp::hook_miss_program() {
+    context["bg_color"]->setFloat(0.0f, 0.0f, 0.0f);
+    context->setMissProgram(
+        ENTRY_POINT_DEFAULT,
+        cst_utils::get_ptx_program(context, MISS_PTX_FILENAME, "miss")
+    );
+}
+
+void OptixApp::hook_intersection_program(optix::Geometry &geometry) {
+    geometry->setIntersectionProgram(
+        cst_utils::get_ptx_program(context, INTERSECTION_PTX_FILENAME, "check_intersection"));
+}
+
+void OptixApp::hook_bb_program(optix::Geometry &geometry) {
+    geometry->setBoundingBoxProgram(
+        cst_utils::get_ptx_program(context, BB_PTX_FILENAME, "bounding_box"));
 }
 
 void OptixApp::kill() {
