@@ -2,10 +2,37 @@
 
 #include <string>
 
+#define ENTRY_POINT_DEFAULT 0
+
+optix::Geometry OptixApp::construct_top_geometry() {
+    // TODO: put volume data into a common buffer.
+    // set number of primitives to x*y*z
+    // TODO: create an intersection program
+    // Link intersection program
+    // TODO: create bounding box program
+    // link bounding box program
+
+    optix::Geometry volume_geometry = context->createGeometry();
+
+    int *dims = this->read_volume_data.sizes;
+    int n_primitives = dims[0] * dims[1] * dims[2];
+
+    volume_geometry->setPrimitiveCount(n_primitives);
+
+    volume_geometry->setIntersectionProgram(
+        cst_utils::get_ptx_program(context, PTX_FILENAME, "check_intersection"));
+    volume_geometry->setBoundingBoxProgram(
+        cst_utils::get_ptx_program(context, PTX_FILENAME, "bounding_box"));
+
+    return volume_geometry;
+}
+
 void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     this->read_volume_data = read_volume_data_;
 
     context = optix::Context::create();
+
+    optix::Geometry top_geometry = this->construct_top_geometry();
 
     /*
     context->setRayTypeCount(2);

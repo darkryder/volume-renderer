@@ -41,6 +41,9 @@ private:
     int width;
     int height;
     bool destroyed;
+
+    const char *PTX_FILENAME = "volume_programs";
+    optix::Geometry construct_top_geometry();
 };
 
 #endif
