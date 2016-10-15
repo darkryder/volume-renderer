@@ -8,7 +8,7 @@ NVCC_FLAGS=-std=c++11 $(SYMBOLS) -g --compiler-options='-Wall -Werror'
 CFLAGS=-Wall -Werror -std=c++11 $(SYMBOLS) -g
 EXTERNAL_LIBS= -L $(CUDA_PATH)/lib64 -L $(OPTIX_PATH)/lib64 -L $(OPTIX_PATH)/SDK/build/lib
 LIBS=-lglut -lGLU -lGL -loptix -loptixu -lsutil_sdk
-PTX_FILES=
+PTX_FILES=pinhole_camera bb intersection miss exception
 
 all: lib display
 	@echo "\nlinking\n"

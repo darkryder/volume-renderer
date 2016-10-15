@@ -42,15 +42,20 @@ private:
     int height;
     bool destroyed;
 
-    const char *INTERSECTION_PTX_FILENAME = "volume_programs";
-    const char *BB_PTX_FILENAME = "volume_programs";
-    const char *MISS_PTX_FILENAME = "volume_programs";
-    const char *EXCEPTION_PTX_FILENAME = "volume_programs";
+    const char *CAMERA_PTX_FILENAME = "pinhole_camera";
+    const char *INTERSECTION_PTX_FILENAME = "intersection";
+    const char *BB_PTX_FILENAME = "bb";
+    const char *MISS_PTX_FILENAME = "miss";
+    const char *EXCEPTION_PTX_FILENAME = "exception";
+
+    optix::Buffer create_output_buffer();
+    optix::Buffer map_volume_data();
     optix::Geometry construct_top_geometry();
     void hook_intersection_program(optix::Geometry &);
     void hook_bb_program(optix::Geometry &);
     void hook_exception_program();
     void hook_miss_program();
+    void hook_camera_program();
 };
 
 #endif
