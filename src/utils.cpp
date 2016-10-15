@@ -1,3 +1,4 @@
+#include "utils.h"
 #include <string>
 
 namespace cst_utils{
@@ -8,5 +9,10 @@ namespace cst_utils{
     std::string get_ptx_path(const char *program_name) {
         std::string str_program_name = std::string(program_name);
         return "bin/" + str_program_name + ".ptx";
+    }
+
+    optix::Program get_ptx_program(optix::Context &context, const char *filename, const char *function_name) {
+        std::string ptx_path = get_ptx_path(filename);
+        return context->createProgramFromPTXFile(ptx_path, function_name);
     }
 }
