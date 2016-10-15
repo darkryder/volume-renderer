@@ -4,6 +4,7 @@
 template <typename T>
 class VolumeData {
 public:
+    VolumeData() {};
     VolumeData(int size_x, int size_y, int size_z);
 
     T get(int x, int y, int z) const;

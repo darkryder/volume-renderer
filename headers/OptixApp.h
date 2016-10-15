@@ -1,6 +1,9 @@
 #ifndef OPTIX_APP_H
 #define OPTIX_APP_H
 
+#include "VolumeReader.h"
+#include "utils.h"
+
 #include <optixu/optixpp_namespace.h>
 #include <optixu/optixu_math_stream_namespace.h>
 #include <optix_world.h>
@@ -22,7 +25,7 @@ public:
         destroyed(false) {};
     ~OptixApp();
 
-    void initialize();
+    void initialize(VolumeData3UC &);
     void frame();
 
     // hooks for display
@@ -33,6 +36,7 @@ public:
     optix::Context context;
 
 private:
+    VolumeData3UC read_volume_data;
     bool use_pbo;
     int width;
     int height;

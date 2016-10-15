@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
 
     LOG("Creating optix app");
     OptixApp optix_app(width, height);
-    optix_app.initialize();
+    optix_app.initialize(volumedata);
 
     LOG("Creating window");
     DisplayManager *display_manager = DisplayManagerWrapper::create_singleton();

@@ -31,7 +31,7 @@ ptx_objects:
 	)
 	@echo "\nPTX files compiled\n"
 
-optixapp.o: ptx_objects
+optixapp.o: ptx_objects reader.o
 	$(CC) $(CFLAGS) $(INCS) -c -o bin/libcst_optixapp.so src/optixApp/OptixApp.cpp
 
 displaymanager.o:

@@ -1,9 +1,10 @@
 #include "OptixApp.h"
-#include "utils.h"
 
 #include <string>
 
-void OptixApp::initialize() {
+void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
+    this->read_volume_data = read_volume_data_;
+
     context = optix::Context::create();
 
     /*
