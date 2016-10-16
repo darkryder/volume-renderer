@@ -33,7 +33,7 @@ public:
     // hooks for display
     inline optix::Buffer getOutputBuffer() { return this->context["output_buffer"]->getBuffer(); }
     void kill();
-    void updateCamera();
+    void update_camera(optix::float3 &, optix::float3 &, optix::float3 &, optix::float3 &);
 
     // public variables
     optix::Context context;
@@ -48,7 +48,6 @@ private:
     // init methods
     optix::Buffer create_output_buffer();
     optix::Buffer map_volume_data();
-    void init_camera_variables();
     optix::Geometry construct_top_geometry();
 
     // ptx programs -- filenames
@@ -63,6 +62,12 @@ private:
     void hook_exception_program();
     void hook_miss_program();
     void hook_camera_program();
+
+    // camera variables
+    optix::float3 eye{};
+    optix::float3 U{};
+    optix::float3 V{};
+    optix::float3 W{};
 };
 
 #endif

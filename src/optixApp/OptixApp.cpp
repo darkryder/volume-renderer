@@ -17,8 +17,6 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     optix::Buffer mapped_volume_data = this->map_volume_data();
     optix::Geometry top_geometry = this->construct_top_geometry();
 
-    this->init_camera_variables();
-
     hook_camera_program();
     hook_bb_program(top_geometry);
     hook_intersection_program(top_geometry);
@@ -48,46 +46,11 @@ optix::Buffer OptixApp::create_output_buffer() {
     return output_buffer;
 }
 
-void OptixApp::init_camera_variables() {
-    optix::float3 camera_eye    = optix::make_float3( 278.0f, 273.0f, -900.0f );
-    optix::float3 camera_lookat = optix::make_float3( 278.0f, 273.0f,    0.0f );
-    optix::float3 camera_up     = optix::make_float3(   0.0f,   1.0f,    0.0f );
-
-    optix::Matrix4x4 camera_rotate  = optix::Matrix4x4::identity();
-
-
-    const float vfov = 35.0f;
-    const float aspect_ratio = static_cast<float>(width) /
-                               static_cast<float>(height);
-
-    optix::float3 camera_u, camera_v, camera_w;
-    sutil::calculateCameraVariables(
-            camera_eye, camera_lookat, camera_up, vfov, aspect_ratio,
-            camera_u, camera_v, camera_w, true);
-
-    const optix::Matrix4x4 frame = optix::Matrix4x4::fromBasis(
-            normalize(camera_u),
-            normalize(camera_v),
-            normalize(-camera_w),
-            camera_lookat);
-    const optix::Matrix4x4 frame_inv = frame.inverse();
-    // Apply camera rotation twice to match old SDK behavior
-    const optix::Matrix4x4 trans     = frame*camera_rotate*camera_rotate*frame_inv;
-
-    camera_eye    = optix::make_float3( trans*make_float4( camera_eye,    1.0f ) );
-    camera_lookat = optix::make_float3( trans*make_float4( camera_lookat, 1.0f ) );
-    camera_up     = optix::make_float3( trans*make_float4( camera_up,     0.0f ) );
-
-    sutil::calculateCameraVariables(
-            camera_eye, camera_lookat, camera_up, vfov, aspect_ratio,
-            camera_u, camera_v, camera_w, true );
-
-    camera_rotate = optix::Matrix4x4::identity();
-
-    context["eye"]->setFloat( camera_eye );
-    context["U"  ]->setFloat( camera_u );
-    context["V"  ]->setFloat( camera_v );
-    context["W"  ]->setFloat( camera_w );
+void OptixApp::update_camera(optix::float3 &eye, optix::float3 &U, optix::float3 &V, optix::float3 &W) {
+    context["eye"]->setFloat(eye);
+    context["U"]->setFloat(U);
+    context["V"]->setFloat(V);
+    context["W"]->setFloat(W);
 }
 
 optix::Buffer OptixApp::map_volume_data() {
@@ -116,7 +79,6 @@ optix::Buffer OptixApp::map_volume_data() {
     mapped_volume_data->unmap();
 
     context["volume_data"]->setBuffer(mapped_volume_data);
-
     return mapped_volume_data;
 }
 

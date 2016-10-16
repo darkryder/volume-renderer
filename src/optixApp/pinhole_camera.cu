@@ -17,6 +17,6 @@ RT_PROGRAM void pinhole_camera() {
 
     output_buffer[launch_index] = make_colour(
         // optix::make_float3(1.0f, 1.0f, 1.0f)
-        ray_direction*10
+        ray_direction*2
     );
 }

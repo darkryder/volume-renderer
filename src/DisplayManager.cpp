@@ -17,6 +17,7 @@ void DisplayManager::registerCallbacks(
     void (* idle_callback_wrapper)(void),
     void (* keyboard_callback_wrapper)(unsigned char key, int x, int y),
     void (* callback_mousepress_wrapper)(int, int, int, int),
+    void (* callback_mousemotion_wrapper)(int, int),
     void (* exit_handler_wrapper)(void)
     ) {
 
@@ -27,7 +28,7 @@ void DisplayManager::registerCallbacks(
     atexit(exit_handler_wrapper);
     // glutReshapeFunc( glutResize );
     glutMouseFunc(callback_mousepress_wrapper);
-    // glutMotionFunc( glutMouseMotion );
+    glutMotionFunc(callback_mousemotion_wrapper);
 }
 
 
@@ -58,8 +59,62 @@ void DisplayManager::callback_mousepress(int button, int state, int x, int y) {
     }
 }
 
-void DisplayManager::display_frame()
-{
+void DisplayManager::callback_mousemotion(int x, int y) {
+    if(this->mouse_button == GLUT_RIGHT_BUTTON) {
+        const float dx = static_cast<float>(x - mouse_prev_pos.x) /
+                         static_cast<float>(this->width);
+        const float dy = static_cast<float>(y - mouse_prev_pos.y) /
+                         static_cast<float>(height);
+        const float dmax = fabsf(dx) > fabs(dy) ? dx : dy;
+        const float scale = fminf(dmax, 0.9f);
+        camera_eye = camera_eye + (camera_lookat - camera_eye)*scale;
+    }
+    else if( mouse_button == GLUT_LEFT_BUTTON ) {
+        const optix::float2 from = { static_cast<float>(mouse_prev_pos.x),
+                                     static_cast<float>(mouse_prev_pos.y) };
+        const optix::float2 to   = { static_cast<float>(x),
+                                     static_cast<float>(y) };
+
+        const optix::float2 a = { from.x / width, from.y / height };
+        const optix::float2 b = { to.x   / width, to.y   / height };
+
+        camera_rotate = arcball.rotate( b, a );
+    }
+    mouse_prev_pos = optix::make_int2(x, y);
+}
+
+void DisplayManager::calc_camera_uvw() {
+    const float vfov = 35.0f;
+    const float aspect_ratio = static_cast<float>(width) /
+                               static_cast<float>(height);
+
+    sutil::calculateCameraVariables(
+            camera_eye, camera_lookat, camera_up, vfov, aspect_ratio,
+            camera_u, camera_v, camera_w, true);
+
+    const optix::Matrix4x4 frame = optix::Matrix4x4::fromBasis(
+            normalize(camera_u),
+            normalize(camera_v),
+            normalize(-camera_w),
+            camera_lookat);
+    const optix::Matrix4x4 frame_inv = frame.inverse();
+    // Apply camera rotation twice to match old SDK behavior
+    const optix::Matrix4x4 trans     = frame*camera_rotate*camera_rotate*frame_inv;
+
+    camera_eye    = optix::make_float3( trans*make_float4( camera_eye,    1.0f ) );
+    camera_lookat = optix::make_float3( trans*make_float4( camera_lookat, 1.0f ) );
+    camera_up     = optix::make_float3( trans*make_float4( camera_up,     0.0f ) );
+
+    sutil::calculateCameraVariables(
+            camera_eye, camera_lookat, camera_up, vfov, aspect_ratio,
+            camera_u, camera_v, camera_w, true );
+
+    camera_rotate = optix::Matrix4x4::identity();
+}
+
+void DisplayManager::display_frame() {
+    this->calc_camera_uvw();
+    this->app.update_camera(camera_eye, camera_u, camera_v, camera_w);
     this->app.frame();
     sutil::displayBufferGL(app.getOutputBuffer());
     glutSwapBuffers();
@@ -76,6 +131,7 @@ namespace DisplayManagerWrapper {
     void display_frame_wrapper() { display_manager->display_frame(); }
     void callback_keyboard_wrapper(unsigned char key, int x, int y) { display_manager->callback_keyboard(key, x, y); }
     void callback_mousepress_wrapper(int button, int state, int x, int y) { display_manager->callback_mousepress(button, state, x, y); }
+    void callback_mousemotion_wrapper(int x, int y) { display_manager->callback_mousemotion(x, y); }
     void exit_handler_wrapper() { display_manager->exit_handler(); }
 
     void registerCallbacksWrapper() {
@@ -84,6 +140,7 @@ namespace DisplayManagerWrapper {
             display_frame_wrapper,          // idle
             callback_keyboard_wrapper,      // keyboard
             callback_mousepress_wrapper,    // mousepress
+            callback_mousemotion_wrapper,   // mousemotion
             exit_handler_wrapper            // exit handler
         );
     }
