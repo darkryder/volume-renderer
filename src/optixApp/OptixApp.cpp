@@ -19,6 +19,8 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     optix::Buffer mapped_volume_data = this->map_volume_data();
     optix::Geometry top_geometry = this->construct_top_geometry();
 
+    this->init_camera_variables();
+
     hook_camera_program();
     hook_bb_program(top_geometry);
     hook_intersection_program(top_geometry);
@@ -27,31 +29,9 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
 
     /*
     context->setRayTypeCount(2);
-    context->setEntryPointCount(1);
-
     context["radiance_ray_type"]->setUint( 0u );
     context["shadow_ray_type"  ]->setUint( 1u );
     context["scene_epsilon"    ]->setFloat( 1.e-4f );
-
-
-    optix::Buffer buffer = sutil::createOutputBuffer(context, RT_FORMAT_UNSIGNED_BYTE4, width, height, use_pbo);
-    context["output_buffer"]->set( buffer );
-
-    std::string ptx_path(cst_utils::get_ptx_path("test_ptx"));
-    optix::Program miss_program = context->createProgramFromPTXFile(ptx_path, "miss");
-    context->setMissProgram(0, miss_program);
-    context["bg_color"]->setFloat(0.34f, 0.55f, 0.85f);
-
-    context->setExceptionProgram(0, context->createProgramFromPTXFile(ptx_path, "exception"));
-    context["bad_color"]->setFloat(0.89f, 0.22f, 0.22f);
-
-    optix::Program raygen_program = context->createProgramFromPTXFile(ptx_path, "pinhole_camera");
-    context->setRayGenerationProgram(0, raygen_program);
-
-    context["eye"]->setFloat(optix::make_float3(0, 0, 0));
-    context["U"]->setFloat(optix::make_float3(0, 0, 0));
-    context["V"]->setFloat(optix::make_float3(0, 0, 0));
-    context["W"]->setFloat(optix::make_float3(0, 0, 0));
 
     optix::GeometryGroup geometry_group = context->createGeometryGroup();
     geometry_group->setAcceleration( context->createAcceleration( "Trbvh" ) );
@@ -72,6 +52,48 @@ optix::Buffer OptixApp::create_output_buffer() {
     optix::Buffer output_buffer = sutil::createOutputBuffer(context, RT_FORMAT_UNSIGNED_BYTE4, width, height, use_pbo);
     context["output_buffer"]->set( output_buffer );
     return output_buffer;
+}
+
+void OptixApp::init_camera_variables() {
+    optix::float3 camera_eye    = optix::make_float3( 278.0f, 273.0f, -900.0f );
+    optix::float3 camera_lookat = optix::make_float3( 278.0f, 273.0f,    0.0f );
+    optix::float3 camera_up     = optix::make_float3(   0.0f,   1.0f,    0.0f );
+
+    optix::Matrix4x4 camera_rotate  = optix::Matrix4x4::identity();
+
+
+    const float vfov = 35.0f;
+    const float aspect_ratio = static_cast<float>(width) /
+                               static_cast<float>(height);
+
+    optix::float3 camera_u, camera_v, camera_w;
+    sutil::calculateCameraVariables(
+            camera_eye, camera_lookat, camera_up, vfov, aspect_ratio,
+            camera_u, camera_v, camera_w, true);
+
+    const optix::Matrix4x4 frame = optix::Matrix4x4::fromBasis(
+            normalize(camera_u),
+            normalize(camera_v),
+            normalize(-camera_w),
+            camera_lookat);
+    const optix::Matrix4x4 frame_inv = frame.inverse();
+    // Apply camera rotation twice to match old SDK behavior
+    const optix::Matrix4x4 trans     = frame*camera_rotate*camera_rotate*frame_inv;
+
+    camera_eye    = optix::make_float3( trans*make_float4( camera_eye,    1.0f ) );
+    camera_lookat = optix::make_float3( trans*make_float4( camera_lookat, 1.0f ) );
+    camera_up     = optix::make_float3( trans*make_float4( camera_up,     0.0f ) );
+
+    sutil::calculateCameraVariables(
+            camera_eye, camera_lookat, camera_up, vfov, aspect_ratio,
+            camera_u, camera_v, camera_w, true );
+
+    camera_rotate = optix::Matrix4x4::identity();
+
+    context["eye"]->setFloat( camera_eye );
+    context["U"  ]->setFloat( camera_u );
+    context["V"  ]->setFloat( camera_v );
+    context["W"  ]->setFloat( camera_w );
 }
 
 optix::Buffer OptixApp::map_volume_data() {

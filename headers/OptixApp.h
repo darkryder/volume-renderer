@@ -50,6 +50,7 @@ private:
 
     optix::Buffer create_output_buffer();
     optix::Buffer map_volume_data();
+    void init_camera_variables();
     optix::Geometry construct_top_geometry();
     void hook_intersection_program(optix::Geometry &);
     void hook_bb_program(optix::Geometry &);
