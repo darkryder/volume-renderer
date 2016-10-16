@@ -16,6 +16,7 @@ void DisplayManager::registerCallbacks(
     void (* display_callback_wrapper)(void),
     void (* idle_callback_wrapper)(void),
     void (* keyboard_callback_wrapper)(unsigned char key, int x, int y),
+    void (* callback_mousepress_wrapper)(int, int, int, int),
     void (* exit_handler_wrapper)(void)
     ) {
 
@@ -25,7 +26,7 @@ void DisplayManager::registerCallbacks(
     glutKeyboardFunc(keyboard_callback_wrapper);
     atexit(exit_handler_wrapper);
     // glutReshapeFunc( glutResize );
-    // glutMouseFunc( glutMousePress );
+    glutMouseFunc(callback_mousepress_wrapper);
     // glutMotionFunc( glutMouseMotion );
 }
 
@@ -50,6 +51,13 @@ void DisplayManager::execute() {
 
 void DisplayManager::callback_keyboard(unsigned char key, int x, int y) {}
 
+void DisplayManager::callback_mousepress(int button, int state, int x, int y) {
+    if( state == GLUT_DOWN ) {
+        this->mouse_button = button;
+        this->mouse_prev_pos = optix::make_int2( x, y );
+    }
+}
+
 void DisplayManager::display_frame()
 {
     this->app.frame();
@@ -67,6 +75,7 @@ namespace DisplayManagerWrapper {
 
     void display_frame_wrapper() { display_manager->display_frame(); }
     void callback_keyboard_wrapper(unsigned char key, int x, int y) { display_manager->callback_keyboard(key, x, y); }
+    void callback_mousepress_wrapper(int button, int state, int x, int y) { display_manager->callback_mousepress(button, state, x, y); }
     void exit_handler_wrapper() { display_manager->exit_handler(); }
 
     void registerCallbacksWrapper() {
@@ -74,6 +83,7 @@ namespace DisplayManagerWrapper {
             display_frame_wrapper,          // display
             display_frame_wrapper,          // idle
             callback_keyboard_wrapper,      // keyboard
+            callback_mousepress_wrapper,    // mousepress
             exit_handler_wrapper            // exit handler
         );
     }

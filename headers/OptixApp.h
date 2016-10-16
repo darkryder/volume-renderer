@@ -10,6 +10,8 @@
 #include <optixu/optixu_math_namespace.h>
 #include <sutil.h>
 
+#define ENTRY_POINT_DEFAULT 0
+
 class OptixApp
 {
 public:
@@ -26,11 +28,12 @@ public:
     ~OptixApp();
 
     void initialize(VolumeData3UC &);
-    void frame();
+    inline void frame() { context->launch(ENTRY_POINT_DEFAULT, width, height); }
 
     // hooks for display
     inline optix::Buffer getOutputBuffer() { return this->context["output_buffer"]->getBuffer(); }
     void kill();
+    void updateCamera();
 
     // public variables
     optix::Context context;
@@ -42,16 +45,19 @@ private:
     int height;
     bool destroyed;
 
+    // init methods
+    optix::Buffer create_output_buffer();
+    optix::Buffer map_volume_data();
+    void init_camera_variables();
+    optix::Geometry construct_top_geometry();
+
+    // ptx programs -- filenames
     const char *CAMERA_PTX_FILENAME = "pinhole_camera";
     const char *INTERSECTION_PTX_FILENAME = "intersection";
     const char *BB_PTX_FILENAME = "bb";
     const char *MISS_PTX_FILENAME = "miss";
     const char *EXCEPTION_PTX_FILENAME = "exception";
-
-    optix::Buffer create_output_buffer();
-    optix::Buffer map_volume_data();
-    void init_camera_variables();
-    optix::Geometry construct_top_geometry();
+    // ptx programs -- hooks
     void hook_intersection_program(optix::Geometry &);
     void hook_bb_program(optix::Geometry &);
     void hook_exception_program();

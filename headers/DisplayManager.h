@@ -23,11 +23,13 @@ public:
         void (*)(void),                             // display callback
         void (*)(void),                             // idle callback
         void (*)(unsigned char key, int x, int y),  // keyboard callback
+        void (*)(int, int, int, int),               // mousepress callback
         void (*)(void)                              // exit handler
 
     );
 
     void callback_keyboard(unsigned char key, int x, int y);
+    void callback_mousepress(int, int, int, int);
     void display_frame();
     void exit_handler();
 
@@ -37,6 +39,10 @@ private:
     int width = DEFAULT_WIDTH;
     int height = DEFAULT_HEIGHT;
     const char* const TITLE = "optixVolumeMarcher";
+
+    // variables for callback states.
+    int mouse_button;
+    optix::int2 mouse_prev_pos;
 };
 
 namespace DisplayManagerWrapper {
@@ -46,6 +52,7 @@ namespace DisplayManagerWrapper {
     DisplayManager *create_singleton();
     void display_frame_wrapper();
     void callback_keyboard_wrapper(unsigned char key, int x, int y);
+    void callback_mousepress_wrapper(int, int, int, int);
     void exit_handler_wrapper();
 
     void registerCallbacksWrapper();

@@ -1,8 +1,6 @@
 #include "OptixApp.h"
 #include <string>
 
-#define ENTRY_POINT_DEFAULT 0
-
 void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     this->read_volume_data = read_volume_data_;
 
@@ -42,10 +40,6 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     context->validate();
     LOG("Context validated.")
 
-}
-
-void OptixApp::frame() {
-    context->launch(0, width, height);
 }
 
 optix::Buffer OptixApp::create_output_buffer() {
