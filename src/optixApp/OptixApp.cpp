@@ -79,6 +79,10 @@ optix::Buffer OptixApp::map_volume_data() {
     mapped_volume_data->unmap();
 
     context["volume_data"]->setBuffer(mapped_volume_data);
+    context["volume_width"]->setUint(width);
+    context["volume_height"]->setUint(height);
+    context["volume_depth"]->setUint(depth);
+
     return mapped_volume_data;
 }
 

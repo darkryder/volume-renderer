@@ -49,7 +49,7 @@ private:
 
     // camera variables
     optix::float3 camera_up = optix::make_float3(0.f, 1.f, 0.f);
-    optix::float3 camera_eye = optix::make_float3(278.0f, 273.0f, -900.0f);
+    optix::float3 camera_eye = optix::make_float3(578.0f, 573.0f, -900.0f);
     optix::float3 camera_lookat = optix::make_float3(278.0f, 273.0f, 0.0f);
     optix::Matrix4x4 camera_rotate = optix::Matrix4x4::identity();
     sutil::Arcball arcball;
