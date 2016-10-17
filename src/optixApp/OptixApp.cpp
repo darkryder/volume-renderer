@@ -17,6 +17,18 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     optix::Buffer mapped_volume_data = this->map_volume_data();
     optix::Geometry top_geometry = this->construct_top_geometry();
 
+    optix::GeometryInstance g_inst = context->createGeometryInstance();
+    g_inst->setGeometry(top_geometry);
+
+    optix::Material material = context->createMaterial();
+    g_inst->addMaterial(material);
+
+    optix::GeometryGroup geometry_group = context->createGeometryGroup();
+    geometry_group->addChild(g_inst);
+    geometry_group->setAcceleration(context->createAcceleration("Trbvh"));
+
+    context["top_object"]->set(geometry_group);
+
     hook_camera_program();
     hook_bb_program(top_geometry);
     hook_intersection_program(top_geometry);
@@ -94,6 +106,7 @@ optix::Geometry OptixApp::construct_top_geometry() {
     int n_primitives = dims[0] * dims[1] * dims[2];
 
     volume_geometry->setPrimitiveCount(n_primitives);
+    context["n_primitives"]->setUint(n_primitives);
 
     return volume_geometry;
 }

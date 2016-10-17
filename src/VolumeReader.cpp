@@ -36,9 +36,9 @@ VolumeData3UC VolumeReader::extract() {
     LOG("Reading datafile.");
     int elem_size = sizeof(unsigned char);
     char copy_buffer;
-    for(int x=0; x < dimx; x++) {
+    for(int z=0; z < dimz; z++) {
         for(int y=0; y < dimy; y++) {
-            for(int z=0; z < dimz; z++) {
+            for(int x=0; x < dimx; x++) {
                 datafile.readsome(&copy_buffer, elem_size);
                 volume_data.set(x, y, z, copy_buffer);
             }
