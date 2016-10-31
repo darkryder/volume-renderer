@@ -14,7 +14,7 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
 #endif
 
     optix::Buffer output_buffer = this->create_output_buffer();
-    optix::Buffer mapped_volume_data = this->map_volume_data();
+    optix::TextureSampler mapped_volume_texture = this->map_volume_data();
     optix::Geometry top_geometry = this->construct_top_geometry();
 
     hook_camera_program();
@@ -53,7 +53,7 @@ void OptixApp::update_camera(optix::float3 &eye, optix::float3 &U, optix::float3
     context["W"]->setFloat(W);
 }
 
-optix::Buffer OptixApp::map_volume_data() {
+optix::TextureSampler OptixApp::map_volume_data() {
     int *dims = this->read_volume_data.sizes;
     int width = dims[0],
         height = dims[1],
@@ -61,29 +61,42 @@ optix::Buffer OptixApp::map_volume_data() {
 
     optix::Buffer mapped_volume_data = context->createBuffer(
             RT_BUFFER_INPUT, // type
-            RT_FORMAT_FLOAT, // format
+            RT_FORMAT_UNSIGNED_BYTE4, // format
             width,
             height,
             depth
     );
 
     LOG("Mapping volume data to device")
-    float *h_mapped_ptr = static_cast<float *>(mapped_volume_data->map());
+    char *h_mapped_ptr = static_cast<char *>(mapped_volume_data->map());
     for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                *h_mapped_ptr++ = static_cast<float>(read_volume_data.get(z, y, x));
+                *h_mapped_ptr++ = read_volume_data.get(z, y, x);
             }
         }
     }
     mapped_volume_data->unmap();
 
+    optix::TextureSampler texture_sampler = context->createTextureSampler();
+    texture_sampler->setWrapMode(0, RT_WRAP_REPEAT);
+    texture_sampler->setWrapMode(1, RT_WRAP_REPEAT);
+    texture_sampler->setFilteringModes(RT_FILTER_LINEAR, RT_FILTER_LINEAR, RT_FILTER_NONE);
+    texture_sampler->setIndexingMode(RT_TEXTURE_INDEX_NORMALIZED_COORDINATES);
+    texture_sampler->setReadMode(RT_TEXTURE_READ_NORMALIZED_FLOAT);
+    texture_sampler->setMaxAnisotropy(1.0f);
+    texture_sampler->setMipLevelCount(1);
+    texture_sampler->setArraySize(1);
+    texture_sampler->setBuffer(0, 0, mapped_volume_data);
+
+    context["volume_texture"]->setTextureSampler(texture_sampler);
     context["volume_data"]->setBuffer(mapped_volume_data);
+
     context["volume_width"]->setUint(width);
     context["volume_height"]->setUint(height);
     context["volume_depth"]->setUint(depth);
 
-    return mapped_volume_data;
+    return texture_sampler;
 }
 
 optix::Geometry OptixApp::construct_top_geometry() {
@@ -107,7 +120,7 @@ void OptixApp::hook_exception_program() {
 }
 
 void OptixApp::hook_miss_program() {
-    context["bg_colour"]->setFloat(0.0f, 0.0f, 0.0f);
+    context["bg_colour"]->setFloat(255.0f, 255.0f, 255.0f);
     context->setMissProgram(
         ENTRY_POINT_DEFAULT,
         cst_utils::get_ptx_program(context, MISS_PTX_FILENAME, "miss")
