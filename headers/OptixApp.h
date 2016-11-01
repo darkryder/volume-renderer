@@ -28,14 +28,7 @@ public:
     ~OptixApp();
 
     void initialize(VolumeData3UC &);
-    inline void frame() {
-#if DEBUG
-        this->frame_idx++;
-        this->frame_idx = this->frame_idx % 80;
-        context["frame_idx"]->setUint(this->frame_idx);
-#endif
-        context->launch(ENTRY_POINT_DEFAULT, width, height);
-    }
+    inline void frame() { context->launch(ENTRY_POINT_DEFAULT, width, height); }
 
     // hooks for display
     inline optix::Buffer getOutputBuffer() { return this->context["output_buffer"]->getBuffer(); }
@@ -52,9 +45,6 @@ private:
     int height;
     bool destroyed;
 
-#if DEBUG
-    int frame_idx = 0;
-#endif
     // init methods
     optix::Buffer create_output_buffer();
     optix::TextureSampler map_volume_data();

@@ -72,7 +72,6 @@ struct volume_meta VolumeReader::read_meta() {
         else if (cst_utils::starts_with(line, "dimension")) {
             int x;
             iss >> _header >> x;
-
             meta.dimension = x;
         }
     }

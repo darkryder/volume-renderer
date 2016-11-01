@@ -4,6 +4,17 @@
 #include <optixu/optixu_math_namespace.h>
 #include <optix_world.h>
 
+#define RAY_MISSED_BB RT_EXCEPTION_USER + 0
+
+struct PerRayData_radiance
+{
+  float result;
+  // float  importance;
+  // int    depth;
+};
+
+static __device__ __inline__ optix::float3 transfer_function(float aggregated) { return optix::make_float3(aggregated, aggregated, aggregated); }
+
 // Convert a float3 in [0,1)^3 to a uchar4 in [0,255]^4 -- 4th channel is set to 255
 // Reference: SDK examples
 #ifdef __CUDACC__

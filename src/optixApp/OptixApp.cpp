@@ -23,8 +23,9 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     hook_miss_program();
     hook_exception_program();
 
+    context["stepping_distance"]->setFloat(0.5f);
+
     /*
-    context->setRayTypeCount(2);
     context["radiance_ray_type"]->setUint( 0u );
     context["shadow_ray_type"  ]->setUint( 1u );
     context["scene_epsilon"    ]->setFloat( 1.e-4f );
@@ -102,17 +103,25 @@ optix::TextureSampler OptixApp::map_volume_data() {
 optix::Geometry OptixApp::construct_top_geometry() {
 
     optix::Geometry volume_geometry = context->createGeometry();
+    volume_geometry->setPrimitiveCount(1);
 
-    int *dims = this->read_volume_data.sizes;
-    int n_primitives = dims[0] * dims[1] * dims[2];
+    optix::GeometryInstance g_inst = context->createGeometryInstance();
+    g_inst->setGeometry(volume_geometry);
 
-    volume_geometry->setPrimitiveCount(n_primitives);
+    optix::Material material = context->createMaterial();
+    g_inst->addMaterial(material);
+
+    optix::GeometryGroup geometry_group = context->createGeometryGroup();
+    geometry_group->addChild(g_inst);
+    geometry_group->setAcceleration(context->createAcceleration("Trbvh"));
+
+    context["top_object"]->set(geometry_group);
 
     return volume_geometry;
 }
 
 void OptixApp::hook_exception_program() {
-    context["exception_colour"]->setFloat(1.0f, 0.0f, 1.0f);
+    context["exception_colour"]->setFloat(255.0f, 0.0f, 255.0f);
     context->setExceptionProgram(
         ENTRY_POINT_DEFAULT,
         cst_utils::get_ptx_program(context, EXCEPTION_PTX_FILENAME, "exception")
