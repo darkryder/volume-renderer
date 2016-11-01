@@ -72,6 +72,6 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
             point.x / (float) volume_width,
             point.y / (float) volume_height,
             point.z / (float) volume_depth
-        )/n_steps)/volume_depth;
+        )/n_steps) / volume_depth;
     }
 }

@@ -82,6 +82,7 @@ optix::TextureSampler OptixApp::map_volume_data() {
     optix::TextureSampler texture_sampler = context->createTextureSampler();
     texture_sampler->setWrapMode(0, RT_WRAP_REPEAT);
     texture_sampler->setWrapMode(1, RT_WRAP_REPEAT);
+    texture_sampler->setWrapMode(2, RT_WRAP_REPEAT);
     texture_sampler->setFilteringModes(RT_FILTER_LINEAR, RT_FILTER_LINEAR, RT_FILTER_NONE);
     texture_sampler->setIndexingMode(RT_TEXTURE_INDEX_NORMALIZED_COORDINATES);
     texture_sampler->setReadMode(RT_TEXTURE_READ_NORMALIZED_FLOAT);

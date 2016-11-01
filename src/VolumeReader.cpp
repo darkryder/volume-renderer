@@ -5,6 +5,7 @@
 #include <string>
 #include <iostream>
 #include <sstream>
+#include <assert.h>
 
 VolumeReader::VolumeReader(const std::string &volume_object_name) {
     this->volume_object_name = volume_object_name;
@@ -44,6 +45,9 @@ VolumeData3UC VolumeReader::extract() {
             }
         }
     }
+
+    datafile.get();
+    assert(datafile.eof());
 
     return volume_data;
 }
