@@ -23,7 +23,7 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     hook_miss_program();
     hook_exception_program();
 
-    context["stepping_distance"]->setFloat(.5f);
+    context["stepping_distance"]->setFloat(0.3f);
 
     /*
     context["radiance_ray_type"]->setUint( 0u );
@@ -69,22 +69,22 @@ optix::TextureSampler OptixApp::map_volume_data() {
     );
 
     LOG("Mapping volume data to device: " << width << "x" << height << "x" << depth)
-    char *h_mapped_ptr = static_cast<char *>(mapped_volume_data->map());
+    float *h_mapped_ptr = static_cast<float *>(mapped_volume_data->map());
     for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                *h_mapped_ptr++ = read_volume_data.get(x, y, z);
+                *h_mapped_ptr++ = (float)read_volume_data.get(x, y, z)/255.0f;
             }
         }
     }
     mapped_volume_data->unmap();
 
     optix::TextureSampler texture_sampler = context->createTextureSampler();
-    texture_sampler->setWrapMode(0, RT_WRAP_REPEAT);
-    texture_sampler->setWrapMode(1, RT_WRAP_REPEAT);
-    texture_sampler->setWrapMode(2, RT_WRAP_REPEAT);
+    texture_sampler->setWrapMode(0, RT_WRAP_CLAMP_TO_BORDER);
+    texture_sampler->setWrapMode(1, RT_WRAP_CLAMP_TO_BORDER);
+    texture_sampler->setWrapMode(2, RT_WRAP_CLAMP_TO_BORDER);
     texture_sampler->setFilteringModes(RT_FILTER_LINEAR, RT_FILTER_LINEAR, RT_FILTER_NONE);
-    texture_sampler->setIndexingMode(RT_TEXTURE_INDEX_NORMALIZED_COORDINATES);
+    texture_sampler->setIndexingMode(RT_TEXTURE_INDEX_ARRAY_INDEX/*RT_TEXTURE_INDEX_NORMALIZED_COORDINATES*/);
     texture_sampler->setReadMode(RT_TEXTURE_READ_NORMALIZED_FLOAT);
     texture_sampler->setMaxAnisotropy(1.0f);
     texture_sampler->setMipLevelCount(1);

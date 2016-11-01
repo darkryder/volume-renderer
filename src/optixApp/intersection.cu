@@ -1,5 +1,4 @@
 #include "device_helpers.cuh"
-
 rtDeclareVariable(optix::Ray, ray, rtCurrentRay, );
 rtDeclareVariable(PerRayData_radiance, prd, rtPayload, );
 rtDeclareVariable(uint2,    launch_index, rtLaunchIndex, );
@@ -10,9 +9,12 @@ rtDeclareVariable(uint, volume_depth, ,);
 
 rtDeclareVariable(float, stepping_distance, ,);
 
-rtTextureSampler<unsigned char, 3>  volume_texture;
+rtTextureSampler<float, 3>  volume_texture;
 
-#define MAX_STEPS 250
+#define MAX_STEPS 50000
+#define kassert( X ) if ( !(X) ) {\
+ return ;}
+
 
 static __device__ bool get_aabb_ray_intersection(float &tmin, float &tmax) {
     optix::float3 orig = ray.origin;
@@ -59,7 +61,7 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
     float tmin = 0.f, tmax = 0.f;
     bool intersected = get_aabb_ray_intersection(tmin, tmax);
     if (!intersected) {
-        rtPrintf("Nope ");
+        // rtPrintf("Nope ");
         rtThrow(RAY_MISSED_BB);
         return;
     }
@@ -69,11 +71,17 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
     for(float curr_t = tmin, steps = 0; curr_t < tmax && steps < n_steps; curr_t += stepping_distance, steps++) {
         float3 point = ray.origin + curr_t*ray.direction;
         // rtPrintf("Accessing %f %f %f\n", point.x / (float) volume_width, point.y / (float) volume_height, point.z / (float) volume_depth);
-        prd.result += (tex3D(
-            volume_texture,
-            (point.x / (float) volume_width),
-            (point.y / (float) volume_height),
-            (point.z / (float) volume_depth)
-        )/n_steps) / volume_width;
+        /*if (
+            (0 <= point.x && point.x <= 255.f) &&
+            (0 <= point.y && point.y <= 255.f) &&
+            (0 <= point.z && point.z <= 255.f)
+        ) */{
+            prd.result += (tex3D(
+                volume_texture,
+                (int)(point.x + .5f),/// (float) volume_width),
+                (int)(point.y + .5f),/// (float) volume_height),
+                (int)(point.z + .5f )/// (float) volume_depth)
+        )/n_steps);
+        }
     }
 }
