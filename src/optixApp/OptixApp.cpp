@@ -114,7 +114,7 @@ optix::Geometry OptixApp::construct_top_geometry() {
 
     optix::GeometryGroup geometry_group = context->createGeometryGroup();
     geometry_group->addChild(g_inst);
-    geometry_group->setAcceleration(context->createAcceleration("Trbvh"));
+    geometry_group->setAcceleration(context->createAcceleration("Sbvh"));
 
     context["top_object"]->set(geometry_group);
 

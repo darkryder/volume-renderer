@@ -15,6 +15,8 @@ rtTextureSampler<float, 3>  volume_texture;
 #define kassert( X ) if ( !(X) ) {\
  return ;}
 
+#define EPS 5.0f
+
 
 static __device__ bool get_aabb_ray_intersection(float &tmin, float &tmax) {
     optix::float3 orig = ray.origin;
@@ -65,6 +67,9 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
         rtThrow(RAY_MISSED_BB);
         return;
     }
+    if ((tmax - tmin) < EPS) {
+        return;
+    }
 
     float n_steps = min((tmax - tmin)/stepping_distance, (float)MAX_STEPS);
 
@@ -81,7 +86,7 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
                 (int)(point.x + .5f),/// (float) volume_width),
                 (int)(point.y + .5f),/// (float) volume_height),
                 (int)(point.z + .5f )/// (float) volume_depth)
-        )/n_steps);
+        ) / n_steps);
         }
     }
 }
