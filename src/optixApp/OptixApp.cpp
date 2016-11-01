@@ -23,7 +23,7 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     hook_miss_program();
     hook_exception_program();
 
-    context["stepping_distance"]->setFloat(0.5f);
+    context["stepping_distance"]->setFloat(.5f);
 
     /*
     context["radiance_ray_type"]->setUint( 0u );
@@ -68,12 +68,12 @@ optix::TextureSampler OptixApp::map_volume_data() {
             depth
     );
 
-    LOG("Mapping volume data to device")
+    LOG("Mapping volume data to device: " << width << "x" << height << "x" << depth)
     char *h_mapped_ptr = static_cast<char *>(mapped_volume_data->map());
     for (int z = 0; z < depth; z++) {
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
-                *h_mapped_ptr++ = read_volume_data.get(z, y, x);
+                *h_mapped_ptr++ = read_volume_data.get(x, y, z);
             }
         }
     }

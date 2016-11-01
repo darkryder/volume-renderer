@@ -30,3 +30,13 @@ void VolumeData<T>::set(int x, int y, int z, T value) {
 
     this->data[x + size_y*(y + size_z * z)] = value;
 }
+
+template <typename T>
+VolumeData<T> *VolumeData<T>::slice(int x, int y, int z) {
+    VolumeData<T> *sliced_volume = new VolumeData<T>();
+    sliced_volume->sizes[0] = x;
+    sliced_volume->sizes[1] = y;
+    sliced_volume->sizes[2] = z;
+    sliced_volume->data = this->data;
+    return sliced_volume;
+}

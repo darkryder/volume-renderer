@@ -11,6 +11,7 @@ public:
     void set(int x, int y, int z, T value);
 
     int sizes[3];
+    VolumeData<T> *slice(int x, int y, int z);
 
     ~VolumeData();
 

@@ -12,6 +12,8 @@ rtDeclareVariable(float, stepping_distance, ,);
 
 rtTextureSampler<unsigned char, 3>  volume_texture;
 
+#define MAX_STEPS 250
+
 static __device__ bool get_aabb_ray_intersection(float &tmin, float &tmax) {
     optix::float3 orig = ray.origin;
     optix::float3 dir = ray.direction;
@@ -62,16 +64,16 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
         return;
     }
 
-    float n_steps = (tmax - tmin)/stepping_distance;
+    float n_steps = min((tmax - tmin)/stepping_distance, (float)MAX_STEPS);
 
-    for(float curr_t = tmin; curr_t < tmax; curr_t += stepping_distance) {
+    for(float curr_t = tmin, steps = 0; curr_t < tmax && steps < n_steps; curr_t += stepping_distance, steps++) {
         float3 point = ray.origin + curr_t*ray.direction;
         // rtPrintf("Accessing %f %f %f\n", point.x / (float) volume_width, point.y / (float) volume_height, point.z / (float) volume_depth);
         prd.result += (tex3D(
             volume_texture,
-            point.x / (float) volume_width,
-            point.y / (float) volume_height,
-            point.z / (float) volume_depth
-        )/n_steps) / volume_depth;
+            (point.x / (float) volume_width),
+            (point.y / (float) volume_height),
+            (point.z / (float) volume_depth)
+        )/n_steps) / volume_width;
     }
 }
