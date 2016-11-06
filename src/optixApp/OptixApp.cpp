@@ -43,7 +43,7 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
 
 optix::Buffer OptixApp::create_output_buffer() {
     optix::Buffer output_buffer = sutil::createOutputBuffer(context, RT_FORMAT_UNSIGNED_BYTE4, width, height, use_pbo);
-    context["output_buffer"]->set( output_buffer );
+    context["output_buffer"]->set(output_buffer);
     return output_buffer;
 }
 

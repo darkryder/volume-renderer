@@ -5,7 +5,12 @@
 
 int main(int argc, char *argv[])
 {
-    VolumeReader volume_reader("bonsai");
+    if (argc < 2) {
+        std::cerr << "Usage: ./3sat <objectname>" << std::endl;
+        exit(1);
+    }
+
+    VolumeReader volume_reader(argv[1]);
     VolumeData3UC volumedata = volume_reader.extract();
 
     int width = DEFAULT_WIDTH,

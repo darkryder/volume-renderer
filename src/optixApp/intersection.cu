@@ -80,13 +80,14 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
             (0 <= point.x && point.x <= 255.f) &&
             (0 <= point.y && point.y <= 255.f) &&
             (0 <= point.z && point.z <= 255.f)
-        ) */{
+        ) */
+        {
             prd.result += (tex3D(
                 volume_texture,
                 (int)(point.x + .5f),/// (float) volume_width),
                 (int)(point.y + .5f),/// (float) volume_height),
                 (int)(point.z + .5f )/// (float) volume_depth)
-        ) / n_steps);
+            ) / n_steps);
         }
     }
 }

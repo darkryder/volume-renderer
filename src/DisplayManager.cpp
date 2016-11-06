@@ -117,6 +117,12 @@ void DisplayManager::display_frame() {
     this->app.update_camera(camera_eye, camera_u, camera_v, camera_w);
     this->app.frame();
     sutil::displayBufferGL(app.getOutputBuffer());
+    {
+        static char fps_text[64] = {0};
+        static unsigned frame_count = 0;
+        cst_utils::createFpsText(fps_text, frame_count++);
+        glutSetWindowTitle(fps_text);
+    }
     glutSwapBuffers();
 }
 

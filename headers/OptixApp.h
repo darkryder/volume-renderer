@@ -16,15 +16,11 @@ class OptixApp
 {
 public:
     OptixApp() :
-        use_pbo(true),
         width(256),
-        height(256),
-        destroyed(false) {};
+        height(256) {};
     OptixApp(int w, int h) :
-        use_pbo(false),
         width(w),
-        height(h),
-        destroyed(false) {};
+        height(h) {};
     ~OptixApp();
 
     void initialize(VolumeData3UC &);
@@ -40,10 +36,10 @@ public:
 
 private:
     VolumeData3UC read_volume_data;
-    bool use_pbo;
+    bool use_pbo = false;
     int width;
     int height;
-    bool destroyed;
+    bool destroyed = false;
 
     // init methods
     optix::Buffer create_output_buffer();
