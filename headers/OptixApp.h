@@ -25,7 +25,13 @@ public:
     ~OptixApp();
 
     void initialize(VolumeData3UC &);
-    inline void frame() { context->launch(ENTRY_POINT_DEFAULT, width, height); }
+    inline void frame() {
+        if (this->transfer_fn_dirty) {
+            this->update_transfer_fn();
+            this->transfer_fn_dirty = false;
+        }
+        context->launch(ENTRY_POINT_DEFAULT, width, height);
+    }
 
     // hooks for display
     inline optix::Buffer getOutputBuffer() { return this->context["output_buffer"]->getBuffer(); }
@@ -45,11 +51,15 @@ private:
     int height;
     bool destroyed = false;
     char *transfer_fn_filename;
+    bool transfer_fn_dirty = false;
+    optix::Buffer mapped_transfer_function_buffer = 0;
 
     // init methods
     optix::Buffer create_output_buffer();
     optix::TextureSampler map_volume_data();
     optix::Geometry construct_top_geometry();
+
+    void update_transfer_fn();
 
     // ptx programs -- filenames
     const char *CAMERA_PTX_FILENAME = "pinhole_camera";

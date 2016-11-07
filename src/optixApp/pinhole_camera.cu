@@ -37,19 +37,14 @@ RT_PROGRAM void pinhole_camera() {
 */
     optix::Ray ray = optix::make_Ray(ray_origin, ray_direction, 0, 0.f, RT_DEFAULT_MAX);
     PerRayData_radiance prd;
-    prd.result = 0;
+    prd.r = prd.g = prd.b = prd.alpha = 0;
 
     rtTrace(top_object, ray, prd);
 
-    float3 transferred = transfer_function(prd.result);
-
-    // if (launch_index.x == 0 && launch_index.y == 0)
-    // rtPrintf("%f\n\n", transferred);
-
     output_buffer[launch_index] = make_colour(
-        // optix::make_float3(1.0f, 1.0f, 1.0f)
+        optix::make_float3(prd.r, prd.g, prd.b)
         // optix::make_float3(t/255.0f, t/255.0f, t/255.0f)
         // ray_direction*2
-        transferred
+        // transferred
     );
 }

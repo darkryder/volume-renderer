@@ -162,13 +162,14 @@ class Instance(Frame):
 
     def commit(self):
         transfer_fn = self.ui.transfer_fn
+        with open(Instance.EXEC_TRANSFER_FUNC_COMM, 'w') as f:
+            text = self.ui.update_nodes_text()
+            f.write(str(len(text.split("\n"))) + " ") # Write the number of following lines
+            f.write(str(max(transfer_fn.keys())) + "\n") # Write number of isovalues
+            f.write(text)
         if not (hasattr(self, 'exec_proc') and self.exec_proc and self.exec_proc.poll() is None):
             print "Process is not running."
             return
-        with open(Instance.EXEC_TRANSFER_FUNC_COMM, 'w') as f:
-            text = self.ui.update_nodes_text()
-            f.write(str(len(text.split("\n"))) + "\n") # Write the number of following lines
-            f.write(text)
         os.kill(self.exec_proc.pid, signal.SIGUSR1)
 
 def main():

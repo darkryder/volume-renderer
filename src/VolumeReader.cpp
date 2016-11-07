@@ -93,7 +93,7 @@ void VolumeReader::print_meta() {
     std::cout << "-----" << std::endl << std::endl;
 }
 
-void VolumeReader::read_transfer_function_file(std::vector<struct transfer_function_control_point> &v, char *filename) {
+void VolumeReader::read_transfer_function_file(std::vector<struct transfer_function_control_point> &v, int &max_isovalue, char *filename) {
     std::string datafile_path = std::string(filename);
     std::ifstream datafile(datafile_path);
     if (datafile.fail()) {
@@ -103,7 +103,7 @@ void VolumeReader::read_transfer_function_file(std::vector<struct transfer_funct
 
     LOG("Reading transfer function definition.");
     int num;
-    datafile >> num;
+    datafile >> num >> max_isovalue;
     for(int i = 0; i < num; i++) {
         int isovalue, r, g, b;
         float alpha;

@@ -10,6 +10,7 @@ rtDeclareVariable(uint, volume_depth, ,);
 rtDeclareVariable(float, stepping_distance, ,);
 
 rtTextureSampler<float, 3>  volume_texture;
+rtTextureSampler<float4, 1> transfer_fn_texture;
 
 #define MAX_STEPS 50000
 #define kassert( X ) if ( !(X) ) {\
@@ -75,19 +76,22 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
 
     for(float curr_t = tmin, steps = 0; curr_t < tmax && steps < n_steps; curr_t += stepping_distance, steps++) {
         float3 point = ray.origin + curr_t*ray.direction;
-        // rtPrintf("Accessing %f %f %f\n", point.x / (float) volume_width, point.y / (float) volume_height, point.z / (float) volume_depth);
-        /*if (
-            (0 <= point.x && point.x <= 255.f) &&
-            (0 <= point.y && point.y <= 255.f) &&
-            (0 <= point.z && point.z <= 255.f)
-        ) */
         {
-            prd.result += (tex3D(
+            int isovalue = (int) (tex3D(
                 volume_texture,
                 (int)(point.x + .5f),/// (float) volume_width),
                 (int)(point.y + .5f),/// (float) volume_height),
                 (int)(point.z + .5f )/// (float) volume_depth)
-            ) / n_steps);
+            ) * 255.99f);
+
+            optix::float4 color = tex1D(transfer_fn_texture, isovalue) / 255.99f;
+            prd.r += (1 - prd.alpha) * optix::getByIndex(color, 0)/n_steps;
+            prd.g += (1 - prd.alpha) * optix::getByIndex(color, 1)/n_steps;
+            prd.b += (1 - prd.alpha) * optix::getByIndex(color, 2)/n_steps;
+            prd.alpha += (1 - prd.alpha) * optix::getByIndex(color, 3)/n_steps;
+            if (prd.alpha > 1) {
+                break;
+            }
         }
     }
 }

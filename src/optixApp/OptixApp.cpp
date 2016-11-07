@@ -10,7 +10,7 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
 
 #ifdef DEBUG
     context->setPrintEnabled(true);
-    context->setPrintBufferSize(2048);
+    context->setPrintBufferSize(8192);
 #endif
 
     optix::Buffer output_buffer = this->create_output_buffer();
@@ -34,6 +34,8 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     geometry_group->setAcceleration( context->createAcceleration( "Trbvh" ) );
     context[ "top_object"   ]->set( geometry_group );
     */
+
+    update_transfer_fn();
 
     LOG("Validating context.")
     context->validate();
@@ -155,12 +157,83 @@ void OptixApp::hook_camera_program() {
 }
 
 void OptixApp::transfer_fn_changed() {
-    LOG("Caught sigusr1")
+    this->transfer_fn_dirty = true;
+}
+
+void OptixApp::update_transfer_fn() {
     std::vector<struct transfer_function_control_point> points;
-    VolumeReader::read_transfer_function_file(points, this->transfer_fn_filename);
+    int max_isovalue;
+    VolumeReader::read_transfer_function_file(points, max_isovalue, this->transfer_fn_filename);
+    int n_isovalues = max_isovalue + 1;
     for(unsigned int i = 0; i < points.size(); i++) {
         LOG(points[i].isovalue << " " << points[i].r << " " << points[i].g << " " << points[i].b << " " << points[i].alpha);
     }
+
+    // interpolate transfer function data
+    struct transfer_function_control_point interpolated_transfer_fn[n_isovalues] = {0};
+    interpolated_transfer_fn[0] = points[0];
+    interpolated_transfer_fn[max_isovalue] = points[points.size() - 1];
+    int idx_points = 0;
+
+    for(int i = 1; i < n_isovalues; i++){
+        struct transfer_function_control_point from = points[idx_points];
+        struct transfer_function_control_point to = points[idx_points + 1];
+        if (i == to.isovalue) {
+            interpolated_transfer_fn[i] = to;
+            idx_points++;
+            continue;
+        }
+
+        float steps = (float) (to.isovalue - from.isovalue);
+        float r_grad = (to.r - from.r) / steps;
+        float g_grad = (to.g - from.g) / steps;
+        float b_grad = (to.b - from.b) / steps;
+        float alpha_grad = (to.alpha - from.alpha) / steps;
+
+        struct transfer_function_control_point interpolated;
+        interpolated.isovalue = i;
+        interpolated.r = from.r + r_grad*(i-from.isovalue);
+        interpolated.g = from.g + g_grad*(i-from.isovalue);
+        interpolated.b = from.b + b_grad*(i-from.isovalue);
+        interpolated.alpha = from.alpha + alpha_grad*(i-from.isovalue);
+
+        interpolated_transfer_fn[i] = interpolated;
+    }
+
+    // for (int i = 0; i < n_isovalues; i++) {
+    //     std::cout << interpolated_transfer_fn[i].r << " " << interpolated_transfer_fn[i].g << " " << interpolated_transfer_fn[i].b << " " << interpolated_transfer_fn[i].alpha << " " << std::endl;
+    // }
+
+    LOG("Mapping transfer function texture to device")
+    if (this->mapped_transfer_function_buffer == 0){
+        this->mapped_transfer_function_buffer = context->createBuffer(
+            RT_BUFFER_INPUT, // type
+            RT_FORMAT_FLOAT4, // format
+            n_isovalues
+        );
+    }
+
+    optix::float4 *h_mapped_ptr = static_cast<optix::float4 *>(this->mapped_transfer_function_buffer->map());
+    for(int i = 0; i < n_isovalues; i++) {
+        struct transfer_function_control_point p = interpolated_transfer_fn[i];
+        *h_mapped_ptr++ = optix::make_float4(p.r, p.g, p.b, p.alpha);
+    }
+    this->mapped_transfer_function_buffer->unmap();
+
+    optix::TextureSampler transfer_fn_texture = context->createTextureSampler();
+
+    transfer_fn_texture->setWrapMode(0, RT_WRAP_CLAMP_TO_BORDER);
+    transfer_fn_texture->setWrapMode(1, RT_WRAP_CLAMP_TO_BORDER);
+    transfer_fn_texture->setWrapMode(2, RT_WRAP_CLAMP_TO_BORDER);
+    transfer_fn_texture->setFilteringModes(RT_FILTER_LINEAR, RT_FILTER_LINEAR, RT_FILTER_NONE);
+    transfer_fn_texture->setIndexingMode(RT_TEXTURE_INDEX_ARRAY_INDEX);
+    transfer_fn_texture->setReadMode(RT_TEXTURE_READ_NORMALIZED_FLOAT);
+    transfer_fn_texture->setMaxAnisotropy(1.0f);
+    transfer_fn_texture->setMipLevelCount(1);
+    transfer_fn_texture->setArraySize(1);
+    transfer_fn_texture->setBuffer(0, 0, this->mapped_transfer_function_buffer);
+
+    context["transfer_fn_texture"]->setTextureSampler(transfer_fn_texture);
 }
 
 void OptixApp::kill() {
