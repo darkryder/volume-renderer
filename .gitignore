@@ -3,3 +3,4 @@ ref/
 3sat_exec
 bin/
 *sublime*
+*.tf

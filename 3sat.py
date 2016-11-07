@@ -2,10 +2,11 @@ import subprocess
 from Tkinter import Tk, RIGHT, BOTH, RAISED, LEFT, TOP, Scale, X, HORIZONTAL, Entry, StringVar, Frame, Button, Label
 from ttk import Style
 from tkColorChooser import askcolor
-from tkFileDialog import askopenfilename
+from tkFileDialog import askopenfilename, asksaveasfilename
 import tkMessageBox
 import os
 import signal
+import pickle
 from collections import Counter
 import matplotlib
 matplotlib.use("TkAgg")
@@ -69,8 +70,11 @@ class UI(Frame):
         self.color_picker.pack(side=LEFT)
         self.selected_alpha = StringVar(value="0.2")
         self.alpha_text_box = Entry(add_color_panel, text="0.1", textvariable=self.selected_alpha).pack(side=LEFT)
-        self.add_color_button = Button(add_color_panel, text="Set node", command=self.add_color).pack(side=RIGHT)
+        self.add_color_button = Button(add_color_panel, text="Set node", command=self.add_color).pack(side=LEFT)
         add_color_panel.pack(after=frame, fill=X)
+
+        Button(add_color_panel, text="Save function", command=self.save_transfer_fn).pack(side=RIGHT)
+        Button(add_color_panel, text="Load function", command=self.load_transfer_fn).pack(side=RIGHT)
 
         self.filename_label = Label(self, text=objectfilename)
         self.filename_label.pack(side=LEFT, padx=5, pady=5)
@@ -92,6 +96,18 @@ class UI(Frame):
         else:
             self.transfer_fn[self.isovalue_slider.get()] = (c[0], c[1], c[2], float(self.selected_alpha.get()))
         self.draw_graph()
+
+    def load_transfer_fn(self):
+        filename = askopenfilename()
+        with open(filename, 'r') as f:
+            self.transfer_fn = pickle.loads(f.read())
+        self.draw_graph()
+
+    def save_transfer_fn(self):
+        filename = asksaveasfilename()
+        if filename is None: return
+        with open(filename, 'w') as f:
+            f.write(pickle.dumps(self.transfer_fn))
 
     def selected_color_fn(self):
         self.selected_color = askcolor()
