@@ -154,6 +154,10 @@ void OptixApp::hook_camera_program() {
     );
 }
 
+void OptixApp::transfer_fn_changed() {
+    LOG("Caught sigusr1")
+}
+
 void OptixApp::kill() {
     if (!destroyed && context) {
         LOG("Destroying context");

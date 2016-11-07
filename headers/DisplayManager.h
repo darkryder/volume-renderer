@@ -26,7 +26,8 @@ public:
         void (*)(unsigned char key, int x, int y),  // keyboard callback
         void (*)(int, int, int, int),               // mousepress callback
         void (*)(int, int),                         // mouse motion callback
-        void (*)(void)                              // exit handler
+        void (*)(void),                             // exit handler
+        void (*)(int)                               // signal handler
 
     );
 
@@ -35,6 +36,7 @@ public:
     void callback_mousemotion(int, int);
     void display_frame();
     void exit_handler();
+    void sigusr1_handler(int);
 
 private:
     OptixApp app;
@@ -70,6 +72,7 @@ namespace DisplayManagerWrapper {
     void callback_mousepress_wrapper(int, int, int, int);
     void callback_mousemotion_wrapper(int, int);
     void exit_handler_wrapper();
+    void sigusr1_handler(int);
 
     void registerCallbacksWrapper();
 }

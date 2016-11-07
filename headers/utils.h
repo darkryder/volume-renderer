@@ -2,6 +2,8 @@
 #define CST_UTILS_H
 
 #include <string>
+#include <signal.h>
+#include <unistd.h>
 #include <optixu/optixpp_namespace.h>
 #include <sutil.h>
 

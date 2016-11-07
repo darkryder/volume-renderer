@@ -12,7 +12,7 @@ PTX_FILES=pinhole_camera bb intersection miss exception
 
 all: lib display
 	@echo "\nlinking\n"
-	$(CC) $(CFLAGS) src/main.cpp -o 3sat \
+	$(CC) $(CFLAGS) src/main.cpp -o 3sat_exec \
 		$(INCS) \
 		-lcst_reader  -lcst_utils -lcst_volumedata -lcst_displaymanager -lcst_optixapp \
 		-L bin $(LIBS) $(EXTERNAL_LIBS)
@@ -51,4 +51,4 @@ base:
 
 clean:
 	rm -rf bin/*
-	rm -f 3sat
+	rm -f 3sat_exec

@@ -18,7 +18,8 @@ void DisplayManager::registerCallbacks(
     void (* keyboard_callback_wrapper)(unsigned char key, int x, int y),
     void (* callback_mousepress_wrapper)(int, int, int, int),
     void (* callback_mousemotion_wrapper)(int, int),
-    void (* exit_handler_wrapper)(void)
+    void (* exit_handler_wrapper)(void),
+    void (* sigusr1_handler_wrapper)(int)
     ) {
 
     // register glut callbacks
@@ -29,6 +30,10 @@ void DisplayManager::registerCallbacks(
     // glutReshapeFunc( glutResize );
     glutMouseFunc(callback_mousepress_wrapper);
     glutMotionFunc(callback_mousemotion_wrapper);
+
+    if (signal(SIGUSR1, sigusr1_handler_wrapper) == SIG_ERR) {
+        std::cerr << "can't catch SIGUSR1" << std::endl;
+    }
 }
 
 
@@ -56,6 +61,12 @@ void DisplayManager::callback_mousepress(int button, int state, int x, int y) {
     if( state == GLUT_DOWN ) {
         this->mouse_button = button;
         this->mouse_prev_pos = optix::make_int2( x, y );
+    }
+}
+
+void DisplayManager::sigusr1_handler(int signo) {
+    if (signo == SIGUSR1){
+        this->app.transfer_fn_changed();
     }
 }
 
@@ -139,6 +150,7 @@ namespace DisplayManagerWrapper {
     void callback_mousepress_wrapper(int button, int state, int x, int y) { display_manager->callback_mousepress(button, state, x, y); }
     void callback_mousemotion_wrapper(int x, int y) { display_manager->callback_mousemotion(x, y); }
     void exit_handler_wrapper() { display_manager->exit_handler(); }
+    void sigusr1_handler_wrapper(int signo) { display_manager->sigusr1_handler(signo); }
 
     void registerCallbacksWrapper() {
         display_manager->registerCallbacks(
@@ -147,7 +159,8 @@ namespace DisplayManagerWrapper {
             callback_keyboard_wrapper,      // keyboard
             callback_mousepress_wrapper,    // mousepress
             callback_mousemotion_wrapper,   // mousemotion
-            exit_handler_wrapper            // exit handler
+            exit_handler_wrapper,           // exit handler
+            sigusr1_handler_wrapper         // signal handler
         );
     }
 }

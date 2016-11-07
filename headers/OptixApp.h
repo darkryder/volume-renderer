@@ -31,6 +31,9 @@ public:
     void kill();
     void update_camera(optix::float3 &, optix::float3 &, optix::float3 &, optix::float3 &);
 
+    // hooks for transfer function change
+    void transfer_fn_changed();
+
     // public variables
     optix::Context context;
 
