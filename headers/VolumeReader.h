@@ -2,6 +2,7 @@
 #define VOLUME_READER_H
 
 #include <string>
+#include <vector>
 #include "VolumeData.h"
 
 struct volume_meta {
@@ -11,12 +12,23 @@ struct volume_meta {
     int sizes[3];
 };
 
+struct transfer_function_control_point {
+    int isovalue;
+    int r;
+    int g;
+    int b;
+    float alpha;
+};
+
 class VolumeReader
 {
 public:
     VolumeReader(const std::string &volume_object_name);
     VolumeData3UC extract();
     void print_meta();
+
+    // for reading transfer function file.
+    static void read_transfer_function_file(std::vector<struct transfer_function_control_point> &, char *);
 
 private:
     std::string volume_object_name;

@@ -5,8 +5,8 @@
 
 int main(int argc, char *argv[])
 {
-    if (argc != 2) {
-        std::cerr << "Usage: ./3sat <objectname>" << std::endl;
+    if (argc != 3) {
+        std::cerr << "Usage: ./3sat <objectname> <transfer_fn_commfile>" << std::endl;
         exit(1);
     }
 
@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
         height = DEFAULT_HEIGHT;
 
     LOG("Creating optix app");
-    OptixApp optix_app(width, height);
+    OptixApp optix_app(width, height, argv[2]);
     optix_app.initialize(volumedata);
 
     LOG("Creating window");

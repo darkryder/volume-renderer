@@ -156,6 +156,11 @@ void OptixApp::hook_camera_program() {
 
 void OptixApp::transfer_fn_changed() {
     LOG("Caught sigusr1")
+    std::vector<struct transfer_function_control_point> points;
+    VolumeReader::read_transfer_function_file(points, this->transfer_fn_filename);
+    for(unsigned int i = 0; i < points.size(); i++) {
+        LOG(points[i].isovalue << " " << points[i].r << " " << points[i].g << " " << points[i].b << " " << points[i].alpha);
+    }
 }
 
 void OptixApp::kill() {

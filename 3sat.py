@@ -23,15 +23,19 @@ class UI(Frame):
         self.parent = parent
         self.transfer_fn = {}
         self.transfer_fn[0] = (0, 0, 0, 0) # set black value
+        self.transfer_fn[min(data_count.keys())] = (0, 0, 0, 0) # set black value
+        self.transfer_fn[max(data_count.keys())] = (0, 0, 0, 0) # set black value
         self.nodes_text = StringVar()
         self.nodes_text.set("")
         self.initUI(objectfilename, data_count, exec_fn, commit_fn)
 
     def update_nodes_text(self):
         text = []
-        for k, v in self.transfer_fn.items():
-            text.append("%d: %d %d %d %d" % (k, v[0], v[1], v[2], v[3]))
-        self.nodes_text.set("\n".join(text))
+        for k, v in sorted(self.transfer_fn.items(), key=lambda x: x[0]):
+            text.append("%d %d %d %d %f" % (k, v[0], v[1], v[2], v[3]))
+        text = "\n".join(text)
+        self.nodes_text.set(text)
+        return text
 
     def draw_graph(self):
         self.update_nodes_text()
@@ -121,7 +125,7 @@ class UI(Frame):
 
 class Instance(Frame):
     EXEC_FILENAME = "./3sat_exec"
-    EXEC_SOCKET = "./comm.sock"
+    EXEC_TRANSFER_FUNC_COMM = "./3sat_comm_transfer_fn.tf"
 
     def initUI(self):
         root = Tk()
@@ -154,13 +158,17 @@ class Instance(Frame):
         if self.objectfilename is None:
             raise RuntimeError("Cannot start program with no object file name")
         filename = self.objectfilename.split(os.path.sep)[-1].split(".")[0]
-        self.exec_proc = subprocess.Popen([Instance.EXEC_FILENAME, filename])
+        self.exec_proc = subprocess.Popen([Instance.EXEC_FILENAME, filename, Instance.EXEC_TRANSFER_FUNC_COMM])
 
     def commit(self):
         transfer_fn = self.ui.transfer_fn
         if not (hasattr(self, 'exec_proc') and self.exec_proc and self.exec_proc.poll() is None):
             print "Process is not running."
             return
+        with open(Instance.EXEC_TRANSFER_FUNC_COMM, 'w') as f:
+            text = self.ui.update_nodes_text()
+            f.write(str(len(text.split("\n"))) + "\n") # Write the number of following lines
+            f.write(text)
         os.kill(self.exec_proc.pid, signal.SIGUSR1)
 
 def main():

@@ -92,3 +92,26 @@ void VolumeReader::print_meta() {
     std::cout << "Sizes in each dimension are " << meta.sizes[0] << "x" << meta.sizes[1] << "x" << meta.sizes[2] << std::endl;
     std::cout << "-----" << std::endl << std::endl;
 }
+
+void VolumeReader::read_transfer_function_file(std::vector<struct transfer_function_control_point> &v, char *filename) {
+    std::string datafile_path = std::string(filename);
+    std::ifstream datafile(datafile_path);
+    if (datafile.fail()) {
+        std::cout << "Unable to open file: " << datafile_path << std::endl;
+        QUIT(1);
+    }
+
+    LOG("Reading transfer function definition.");
+    int num;
+    datafile >> num;
+    for(int i = 0; i < num; i++) {
+        int isovalue, r, g, b;
+        float alpha;
+        datafile >> isovalue >> r >> g >> b >> alpha;
+        struct transfer_function_control_point control_point = {isovalue, r, g, b, alpha};
+        v.push_back(control_point);
+    }
+
+    datafile.get();
+    assert(datafile.eof());
+}

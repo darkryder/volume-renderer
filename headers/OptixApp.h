@@ -18,9 +18,10 @@ public:
     OptixApp() :
         width(256),
         height(256) {};
-    OptixApp(int w, int h) :
+    OptixApp(int w, int h, char *transfer_fn_filename_) :
         width(w),
-        height(h) {};
+        height(h),
+        transfer_fn_filename(transfer_fn_filename_) {};
     ~OptixApp();
 
     void initialize(VolumeData3UC &);
@@ -43,6 +44,7 @@ private:
     int width;
     int height;
     bool destroyed = false;
+    char *transfer_fn_filename;
 
     // init methods
     optix::Buffer create_output_buffer();
