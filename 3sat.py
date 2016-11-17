@@ -19,51 +19,85 @@ DEFAULT_WINDOW_GEO = "800x600+300+300"
 
 class UI(Frame):
 
-    def handle_canvas_click_fn(self, type_):
+    def handle_canvas_interact_fn(self, type_):
         xmin, xmax = 190, 640
         ymax, ymin = 380, 104
         xrang = xmax - xmin
         yrang = ymax - ymin
         get_xy = lambda x, y: ( min(xrang, max(0, (x - xmin))), min(yrang, max(0, (y - ymin))) )
+        get_isovalue_alpha = lambda x, y: (
+            max(0, min(n_isovalues, int( (float(x) / (xrang)) * n_isovalues + 0.5))),
+            abs(1 - float(y) / (yrang))
+        )
+        n_isovalues = max(self.transfer_fn.iterkeys())
 
-        single = True
+
+        self.__ui_inter_single = True
+        self.__ui_inter_selected = None
 
         def trigger_single(event):
-            global single
-            if single:
-                single = False
+
+            # Check if it is definitely single click
+            if self.__ui_inter_single: self.__ui_inter_single = False
+            else: return
+
+            iso, alpha = get_isovalue_alpha(*get_xy(event.x, event.y))
+
+            # Present either old color or new default color
+            if self.__ui_inter_selected is not None:
+                default_color=self.transfer_fn[self.__ui_inter_selected]
+                c = askcolor(color=(default_color[0], default_color[1], default_color[2]))
             else:
-                return
+                c = askcolor()
 
-            print "Single pressed"
-            x, y = get_xy(event.x, event.y)
-            print x, y
+            if c is None or c[0] is None: return
 
-            n_isovalues = max(self.transfer_fn.iterkeys())
-            iso = max(0, min(n_isovalues, int( (float(x) / (xrang)) * n_isovalues + 0.5)))
-            alpha = abs(1 - float(y) / (yrang))
+            # delete selected node if exists.
+            if self.__ui_inter_selected:
+                del self.transfer_fn[self.__ui_inter_selected]
+                self.__ui_inter_selected = None
 
-            c = askcolor()
-            if c is None or c[0] is None:
-                return
-
+            # Add this new node to the transfer function
             self.transfer_fn[iso] = (c[0][0], c[0][1], c[0][2], alpha)
             self.draw_graph()
 
-
         def handle_single(event):
-            global single
-            single = True
+            self.__ui_inter_single = True
             self.parent.after(250, trigger_single, event)
 
-
         def handle_double(event):
-            global single
-            single = False
-            print "Double pressed"
-            return
+            self.__ui_inter_single = False
+            iso, alpha = get_isovalue_alpha(*get_xy(event.x, event.y))
 
-        return handle_single if type_ == "single" else handle_double
+            # double click after selecting a node means delete it
+            if self.__ui_inter_selected:
+                del self.transfer_fn[self.__ui_inter_selected]
+                self.__ui_inter_selected = None
+                self.draw_graph()
+                return
+
+            consider = []
+            for k, v in self.transfer_fn.iteritems():
+                if abs(k - iso) < 20 and abs(v[3] - alpha) < 0.3:
+                    consider.append(k)
+            if not consider:
+                return
+
+            consider.sort( key = lambda k: abs(self.transfer_fn[k][3]*10 - alpha*10) + abs(k-iso) )
+            self.__ui_inter_selected = consider[0]
+
+            self.draw_graph(selected_node_iso=self.__ui_inter_selected)
+
+        def handle_motion(event):
+            if self.__ui_inter_selected is None: return
+            iso, alpha = get_isovalue_alpha(*get_xy(event.x, event.y))
+            self.draw_graph(selected_node_iso=self.__ui_inter_selected, misc_items=[iso, alpha])
+
+        return {
+            "single": handle_single,
+            "double": handle_double,
+            "motion": handle_motion
+        }[type_]
 
     def __init__(self, parent, objectfilename, data_count, exec_fn, commit_fn):
         Frame.__init__(self, parent)
@@ -84,14 +118,24 @@ class UI(Frame):
         self.nodes_text.set(text)
         return text
 
-    def draw_graph(self):
+    def draw_graph(self, selected_node_iso = None, misc_items=[]):
         self.update_nodes_text()
         self.graph.clear()
         self.graph.cla()
         self.graph.bar(self.data_count.keys(), map(lambda x: float(x)/10**5, self.data_count.values()), width=1, color='g')
         items = zip(*sorted(self.transfer_fn.items(), key=lambda x: x[0]))
         self.graph.plot(items[0], map(lambda x: x[3], items[1]), zorder=1)
-        self.graph.scatter(items[0], map(lambda x: x[3], items[1]), c=map(lambda x: (x[0]/255.0, x[1]/255.0, x[2]/255.0), items[1]), zorder=2, s=100)
+
+        s = 100
+        if selected_node_iso is not None:
+            idx = items[0].index(selected_node_iso)
+            s = [100 for _ in xrange(len(items[0]))]
+            s[idx] = 200
+
+        self.graph.scatter(items[0], map(lambda x: x[3], items[1]), c=map(lambda x: (x[0]/255.0, x[1]/255.0, x[2]/255.0), items[1]), zorder=2, s=s)
+        if misc_items:
+            self.graph.scatter(misc_items[0], misc_items[1], s=200, zorder=3)
+
         self.figure_canvas.draw()
 
     def initUI(self, objectfilename, data_count, exec_fn, commit_fn):
@@ -109,8 +153,9 @@ class UI(Frame):
         self.figure_canvas = FigureCanvasTkAgg(self.graph_figure, frame)
         # self.figure_canvas.get_tk_widget
 
-        self.figure_canvas.get_tk_widget().bind("<Double-1>", self.handle_canvas_click_fn("double"))
-        self.figure_canvas.get_tk_widget().bind("<Button 1>", self.handle_canvas_click_fn("single"))
+        self.figure_canvas.get_tk_widget().bind("<Double-1>", self.handle_canvas_interact_fn("double"))
+        self.figure_canvas.get_tk_widget().bind("<Button 1>", self.handle_canvas_interact_fn("single"))
+        self.figure_canvas.get_tk_widget().bind("<Motion>", self.handle_canvas_interact_fn("motion"))
 
         self.graph = self.graph_figure.add_subplot(111)
 
