@@ -21,7 +21,7 @@ class UI(Frame):
 
     def handle_canvas_interact_fn(self, type_):
         xmin, xmax = 190, 640
-        ymax, ymin = 380, 104
+        ymax, ymin = 442, 190
         xrang = xmax - xmin
         yrang = ymax - ymin
         get_xy = lambda x, y: ( min(xrang, max(0, (x - xmin))), min(yrang, max(0, (y - ymin))) )
@@ -76,6 +76,7 @@ class UI(Frame):
                 self.draw_graph()
                 return
 
+            # Find nearby nodes
             consider = []
             for k, v in self.transfer_fn.iteritems():
                 if abs(k - iso) < 20 and abs(v[3] - alpha) < 0.3:
@@ -83,6 +84,7 @@ class UI(Frame):
             if not consider:
                 return
 
+            # Select the nearest node
             consider.sort( key = lambda k: abs(self.transfer_fn[k][3]*10 - alpha*10) + abs(k-iso) )
             self.__ui_inter_selected = consider[0]
 
@@ -106,20 +108,9 @@ class UI(Frame):
         self.transfer_fn[0] = (0, 0, 0, 0) # set black value
         self.transfer_fn[min(data_count.keys())] = (0, 0, 0, 0) # set black value
         self.transfer_fn[max(data_count.keys())] = (0, 0, 0, 0) # set black value
-        self.nodes_text = StringVar()
-        self.nodes_text.set("")
         self.initUI(objectfilename, data_count, exec_fn, commit_fn)
 
-    def update_nodes_text(self):
-        text = []
-        for k, v in sorted(self.transfer_fn.items(), key=lambda x: x[0]):
-            text.append("%d %d %d %d %f" % (k, v[0], v[1], v[2], v[3]))
-        text = "\n".join(text)
-        self.nodes_text.set(text)
-        return text
-
     def draw_graph(self, selected_node_iso = None, misc_items=[]):
-        self.update_nodes_text()
         self.graph.clear()
         self.graph.cla()
         self.graph.bar(self.data_count.keys(), map(lambda x: float(x)/10**5, self.data_count.values()), width=1, color='g')
@@ -137,6 +128,14 @@ class UI(Frame):
             self.graph.scatter(misc_items[0], misc_items[1], s=200, zorder=3)
 
         self.figure_canvas.draw()
+
+
+    def update_nodes_text(self):
+        text = []
+        for k, v in sorted(self.transfer_fn.items(), key=lambda x: x[0]):
+            text.append("%d %d %d %d %f" % (k, v[0], v[1], v[2], v[3]))
+        text = "\n".join(text)
+        return text
 
     def initUI(self, objectfilename, data_count, exec_fn, commit_fn):
         self.commit_fn = commit_fn
@@ -165,38 +164,21 @@ class UI(Frame):
         frame.pack(fill=BOTH, expand=True)
 
         add_color_panel = Frame(self, borderwidth=1)
-        self.isovalue_slider = Scale(add_color_panel, orient=HORIZONTAL, from_=min(data_count.keys()), to=max(data_count.keys()))
-        self.isovalue_slider.pack(fill=X, padx=50)
-        self.color_picker = Button(add_color_panel, text="Pick Color", command=self.selected_color_fn, bg="white")
-        self.color_picker.pack(side=LEFT)
-        self.selected_alpha = StringVar(value="0.2")
-        self.alpha_text_box = Entry(add_color_panel, text="0.1", textvariable=self.selected_alpha).pack(side=LEFT)
-        self.add_color_button = Button(add_color_panel, text="Set node", command=self.add_color).pack(side=LEFT)
         add_color_panel.pack(after=frame, fill=X)
 
-        Button(add_color_panel, text="Save function", command=self.save_transfer_fn).pack(side=RIGHT)
-        Button(add_color_panel, text="Load function", command=self.load_transfer_fn).pack(side=RIGHT)
 
         self.filename_label = Label(self, text=objectfilename)
+        self.executeButton = Button(self, text="Run", command=self.exec_pressed)
+        self.commitButton = Button(self, text="Commit", command=self.commit_pressed)
+
         self.filename_label.pack(side=LEFT, padx=5, pady=5)
-        self.executeButton = Button(self, text="Run.", command=self.exec_pressed)
+        Button(self, text="Save function", command=self.save_transfer_fn).pack(side=RIGHT, padx=5, pady=5)
+        Button(self, text="Load function", command=self.load_transfer_fn).pack(side=RIGHT, padx=5, pady=5)
         self.executeButton.pack(side=RIGHT, padx=5, pady=5)
-        self.commitButton = Button(self, text="Commit.", command=self.commit_pressed)
         self.commitButton.pack(side=RIGHT)
-        self.nodes_label = Label(self, textvariable=self.nodes_text)
-        self.nodes_label.pack(after=self.commitButton)
 
         self.draw_graph()
         self.pack(fill=BOTH, expand=True)
-
-    def add_color(self):
-        c = self.selected_color[0]
-        should_delete = self.selected_alpha.get() == "del"
-        if should_delete:
-            del self.transfer_fn[self.isovalue_slider.get()]
-        else:
-            self.transfer_fn[self.isovalue_slider.get()] = (c[0], c[1], c[2], float(self.selected_alpha.get()))
-        self.draw_graph()
 
     def load_transfer_fn(self):
         filename = askopenfilename()
@@ -209,10 +191,6 @@ class UI(Frame):
         if filename is None: return
         with open(filename, 'w') as f:
             f.write(pickle.dumps(self.transfer_fn))
-
-    def selected_color_fn(self):
-        self.selected_color = askcolor()
-        self.color_picker.configure(bg=self.selected_color[1])
 
     def exec_pressed(self):
         self.exec_fn()
