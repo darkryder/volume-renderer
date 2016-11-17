@@ -18,6 +18,53 @@ __author__ = ("Sambhav Satija", "sambhav13085@iiitd.ac.in")
 DEFAULT_WINDOW_GEO = "800x600+300+300"
 
 class UI(Frame):
+
+    def handle_canvas_click_fn(self, type_):
+        xmin, xmax = 190, 640
+        ymax, ymin = 380, 104
+        xrang = xmax - xmin
+        yrang = ymax - ymin
+        get_xy = lambda x, y: ( min(xrang, max(0, (x - xmin))), min(yrang, max(0, (y - ymin))) )
+
+        single = True
+
+        def trigger_single(event):
+            global single
+            if single:
+                single = False
+            else:
+                return
+
+            print "Single pressed"
+            x, y = get_xy(event.x, event.y)
+            print x, y
+
+            n_isovalues = max(self.transfer_fn.iterkeys())
+            iso = max(0, min(n_isovalues, int( (float(x) / (xrang)) * n_isovalues + 0.5)))
+            alpha = abs(1 - float(y) / (yrang))
+
+            c = askcolor()
+            if c is None or c[0] is None:
+                return
+
+            self.transfer_fn[iso] = (c[0][0], c[0][1], c[0][2], alpha)
+            self.draw_graph()
+
+
+        def handle_single(event):
+            global single
+            single = True
+            self.parent.after(250, trigger_single, event)
+
+
+        def handle_double(event):
+            global single
+            single = False
+            print "Double pressed"
+            return
+
+        return handle_single if type_ == "single" else handle_double
+
     def __init__(self, parent, objectfilename, data_count, exec_fn, commit_fn):
         Frame.__init__(self, parent)
         self.parent = parent
@@ -60,6 +107,11 @@ class UI(Frame):
 
         self.graph_figure = Figure()
         self.figure_canvas = FigureCanvasTkAgg(self.graph_figure, frame)
+        # self.figure_canvas.get_tk_widget
+
+        self.figure_canvas.get_tk_widget().bind("<Double-1>", self.handle_canvas_click_fn("double"))
+        self.figure_canvas.get_tk_widget().bind("<Button 1>", self.handle_canvas_click_fn("single"))
+
         self.graph = self.graph_figure.add_subplot(111)
 
         self.figure_canvas.show()
@@ -128,9 +180,10 @@ class Instance(Frame):
     EXEC_TRANSFER_FUNC_COMM = "./3sat_comm_transfer_fn.tf"
 
     def initUI(self):
-        root = Tk()
-        root.geometry(DEFAULT_WINDOW_GEO)
-        self.ui = UI(root, self.objectfilename, self.data_count, self.start_exec, self.commit)
+        self.root = Tk()
+        self.root.resizable(width=False, height=False)
+        self.root.geometry(DEFAULT_WINDOW_GEO)
+        self.ui = UI(self.root, self.objectfilename, self.data_count, self.start_exec, self.commit)
         self.ui.mainloop()
 
     def __init__(self):
@@ -139,7 +192,7 @@ class Instance(Frame):
         root = Tk()
         root.withdraw()
 
-        self.objectfilename = askopenfilename()
+        self.objectfilename = "/home/darkryder/Desktop/work/btp/data/NRRD/bonsai.raw"#askopenfilename()
         self.data_count = self.get_data_with_count()
 
         root.destroy()

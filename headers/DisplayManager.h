@@ -8,8 +8,8 @@
 
 #include "OptixApp.h"
 
-#define DEFAULT_WIDTH 512
-#define DEFAULT_HEIGHT 512
+#define DEFAULT_WIDTH 256
+#define DEFAULT_HEIGHT 256
 
 class DisplayManager
 {

@@ -90,7 +90,7 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
             prd.b += (1 - prd.alpha) * optix::getByIndex(color, 2)/n_steps;
             prd.alpha += (1 - prd.alpha) * optix::getByIndex(color, 3)/n_steps;
             if (prd.alpha > 1) {
-                break;
+                // break;
             }
         }
     }
