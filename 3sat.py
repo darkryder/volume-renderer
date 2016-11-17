@@ -21,7 +21,7 @@ class UI(Frame):
 
     def handle_canvas_interact_fn(self, type_):
         xmin, xmax = 190, 640
-        ymax, ymin = 442, 190
+        ymax, ymin = 442, 125
         xrang = xmax - xmin
         yrang = ymax - ymin
         get_xy = lambda x, y: ( min(xrang, max(0, (x - xmin))), min(yrang, max(0, (y - ymin))) )
@@ -93,7 +93,7 @@ class UI(Frame):
         def handle_motion(event):
             if self.__ui_inter_selected is None: return
             iso, alpha = get_isovalue_alpha(*get_xy(event.x, event.y))
-            self.draw_graph(selected_node_iso=self.__ui_inter_selected, misc_items=[iso, alpha])
+            self.draw_graph(selected_node_iso=self.__ui_inter_selected, misc_items=[iso, alpha], is_fast_update=True)
 
         return {
             "single": handle_single,
@@ -110,20 +110,42 @@ class UI(Frame):
         self.transfer_fn[max(data_count.keys())] = (0, 0, 0, 0) # set black value
         self.initUI(objectfilename, data_count, exec_fn, commit_fn)
 
-    def draw_graph(self, selected_node_iso = None, misc_items=[]):
+    def draw_graph(self, selected_node_iso=None, misc_items=[], is_fast_update=False):
         self.graph.clear()
         self.graph.cla()
-        self.graph.bar(self.data_count.keys(), map(lambda x: float(x)/10**5, self.data_count.values()), width=1, color='g')
-        items = zip(*sorted(self.transfer_fn.items(), key=lambda x: x[0]))
-        self.graph.plot(items[0], map(lambda x: x[3], items[1]), zorder=1)
 
-        s = 100
-        if selected_node_iso is not None:
-            idx = items[0].index(selected_node_iso)
-            s = [100 for _ in xrange(len(items[0]))]
-            s[idx] = 200
+        if not is_fast_update:
+            bar_x, bar_y = self.data_count.keys(), map(lambda x: float(x)/10**5, self.data_count.values())
+            items = zip(*sorted(self.transfer_fn.items(), key=lambda x: x[0]))
+            plot_x, plot_y = items[0], map(lambda x: x[3], items[1])
+            scatter_x, scatter_y = items[0], map(lambda x: x[3], items[1])
+            scatter_c = map(lambda x: (x[0]/255.0, x[1]/255.0, x[2]/255.0), items[1])
 
-        self.graph.scatter(items[0], map(lambda x: x[3], items[1]), c=map(lambda x: (x[0]/255.0, x[1]/255.0, x[2]/255.0), items[1]), zorder=2, s=s)
+            s = 100
+            if selected_node_iso is not None:
+                idx = items[0].index(selected_node_iso)
+                s = [100 for _ in xrange(len(items[0]))]
+                s[idx] = 200
+
+            self.__graph_cache['bar_x'] = bar_x; self.__graph_cache['bar_y'] = bar_y; self.__graph_cache['items'] = items;
+            self.__graph_cache['items'] = items; self.__graph_cache['plot_x'] = plot_x; self.__graph_cache['plot_y'] = plot_y;
+            self.__graph_cache['scatter_x'] = scatter_x; self.__graph_cache['scatter_y'] = scatter_y; self.__graph_cache['scatter_c'] = scatter_c;
+            self.__graph_cache['s'] = s;
+        else:
+            bar_x = self.__graph_cache['bar_x']; bar_y = self.__graph_cache['bar_y']; items = self.__graph_cache['items'];
+            items = self.__graph_cache['items']; plot_x = self.__graph_cache['plot_x']; plot_y = self.__graph_cache['plot_y'];
+            scatter_x = self.__graph_cache['scatter_x']; scatter_y = self.__graph_cache['scatter_y']; scatter_c = self.__graph_cache['scatter_c'];
+            s = self.__graph_cache['s'];
+
+        self.graph.bar(bar_x, bar_y, width=1, color='g')
+        self.graph.plot(plot_x, plot_y, zorder=1)
+
+        if not is_fast_update:
+            self.help_panel_text.set("Single click on the graph to place a new node.\nDouble click to select the nearest one.")
+        else:
+            self.help_panel_text.set("Edit mode: Click to place the node.\nDouble click to delete it.")
+
+        self.graph.scatter(scatter_x, scatter_y, c=scatter_c, zorder=2, s=s)
         if misc_items:
             self.graph.scatter(misc_items[0], misc_items[1], s=200, zorder=3)
 
@@ -163,11 +185,8 @@ class UI(Frame):
         self.figure_canvas._tkcanvas.pack(side=TOP, fill=BOTH, expand=True)
         frame.pack(fill=BOTH, expand=True)
 
-        add_color_panel = Frame(self, borderwidth=1)
-        add_color_panel.pack(after=frame, fill=X)
-
-
-        self.filename_label = Label(self, text=objectfilename)
+        self.help_panel_text = StringVar()
+        self.filename_label = Label(self, textvariable=self.help_panel_text) #text=objectfilename)
         self.executeButton = Button(self, text="Run", command=self.exec_pressed)
         self.commitButton = Button(self, text="Commit", command=self.commit_pressed)
 
@@ -177,8 +196,15 @@ class UI(Frame):
         self.executeButton.pack(side=RIGHT, padx=5, pady=5)
         self.commitButton.pack(side=RIGHT)
 
+        # help_panel = Frame(self, borderwidth=1)
+        # self.help_panel_label = Label(help_panel, textvariable=self.help_panel_text)
+        # self.help_panel_label.pack(side=LEFT, padx=5, pady=5)
+        # help_panel.pack(fill=X, expand=True)
+
+        self.__graph_cache = {}
         self.draw_graph()
         self.pack(fill=BOTH, expand=True)
+
 
     def load_transfer_fn(self):
         filename = askopenfilename()
