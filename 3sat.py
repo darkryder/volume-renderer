@@ -241,7 +241,7 @@ class Instance(Frame):
         root = Tk()
         root.withdraw()
 
-        self.objectfilename = "/home/darkryder/Desktop/work/btp/data/NRRD/bonsai.raw"#askopenfilename()
+        self.objectfilename = askopenfilename()
         self.data_count = self.get_data_with_count()
 
         root.destroy()
