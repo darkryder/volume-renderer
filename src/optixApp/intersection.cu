@@ -74,6 +74,8 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
 
     float n_steps = min((tmax - tmin)/stepping_distance, (float)MAX_STEPS);
 
+    prd.r = prd.g = prd.b = 0.2;
+
     for(float curr_t = tmin, steps = 0; curr_t < tmax && steps < n_steps; curr_t += stepping_distance, steps++) {
         float3 point = ray.origin + curr_t*ray.direction;
         {
