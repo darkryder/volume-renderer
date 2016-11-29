@@ -8,6 +8,7 @@ rtDeclareVariable(uint, volume_height, ,);
 rtDeclareVariable(uint, volume_depth, ,);
 
 rtDeclareVariable(float, stepping_distance, ,);
+rtDeclareVariable(float, ambient_light, ,);
 
 rtTextureSampler<float, 3>  volume_texture;
 rtTextureSampler<float4, 1> transfer_fn_texture;
@@ -74,7 +75,7 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
 
     float n_steps = min((tmax - tmin)/stepping_distance, (float)MAX_STEPS);
 
-    prd.r = prd.g = prd.b = 0.2;
+    prd.r = prd.g = prd.b = ambient_light;
 
     for(float curr_t = tmin, steps = 0; curr_t < tmax && steps < n_steps; curr_t += stepping_distance, steps++) {
         float3 point = ray.origin + curr_t*ray.direction;
@@ -96,4 +97,8 @@ RT_PROGRAM void check_intersection(int prim_index /*There's always 1 primitive*/
             }
         }
     }
+    prd.r *= 2;
+    prd.g *= 2;
+    prd.b *= 2;
+    prd.alpha *= 2;
 }

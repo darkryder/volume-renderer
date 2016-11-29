@@ -24,6 +24,7 @@ void OptixApp::initialize(VolumeData3UC &read_volume_data_) {
     hook_exception_program();
 
     context["stepping_distance"]->setFloat(0.3f);
+    context["ambient_light"]->setFloat(0.02f);
 
     /*
     context["radiance_ray_type"]->setUint( 0u );
